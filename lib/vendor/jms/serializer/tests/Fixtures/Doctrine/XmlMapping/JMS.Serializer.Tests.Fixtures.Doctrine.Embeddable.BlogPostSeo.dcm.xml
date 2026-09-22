@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
+  <embeddable name="JMS\Serializer\Tests\Fixtures\Doctrine\Embeddable\BlogPostSeo">
+    <field name="metaTitle" column="meta_title" type="string" nullable="false"/>
+  </embeddable>
+</doctrine-mapping>

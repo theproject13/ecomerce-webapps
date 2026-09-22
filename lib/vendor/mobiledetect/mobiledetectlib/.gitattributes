@@ -1,0 +1,4 @@
+/examples export-ignore
+/docs export-ignore
+/export export-ignore
+/.* export-ignore

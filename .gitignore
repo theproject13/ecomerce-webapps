@@ -1,0 +1,16 @@
+# Duplicate store copies (recursive full-copies) - not part of main install
+/watch/
+/furniture/
+/printshop/
+/b2b-supermarket/
+
+# Runtime caches, logs, compiled templates (auto-regenerated)
+/lib/*/runtime/
+*/runtime/
+/themes/*/cache/
+/assets/
+
+# Composer / editor
+/vendor/
+.ds_store
+Thumbs.db

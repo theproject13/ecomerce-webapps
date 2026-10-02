@@ -63,6 +63,21 @@ class platform_config
           $this->platform['ssl_enabled'] = $default_platform['ssl_enabled'];
       }
 
+      // The platform row stored in the database was written for a different device
+      // (different folder name, port or host). The URL detection in
+      // includes/configure.php and in the AdditionalPlatforms extension notices that and
+      // exports OSC_DETECTED_BASE_URL; follow the live request so every consumer of the
+      // base URL - asset bundles, SEO urls, feeds, payment callbacks - agrees with it.
+      // Only the store that is actually being served is rewritten, so satellite
+      // platforms keep their own URL.
+      if ( defined('OSC_DETECTED_BASE_URL')
+           && !empty(OSC_DETECTED_PLATFORM_ID)
+           && (int)$this->id === (int)OSC_DETECTED_PLATFORM_ID ) {
+          $this->platform['platform_url'] = rtrim(OSC_DETECTED_BASE_URL, '/');
+          $this->platform['platform_url_secure'] = rtrim(OSC_DETECTED_BASE_URL, '/');
+          $this->platform['ssl_enabled'] = OSC_DETECTED_IS_SECURE ? 1 : 0;
+      }
+
       if ($this->platform['is_default_contact'] == 1 && is_array($default_platform)) {
         $this->platform['platform_email_from'] = $default_platform['platform_email_from'];
         $this->platform['platform_email_address'] = $default_platform['platform_email_address'];

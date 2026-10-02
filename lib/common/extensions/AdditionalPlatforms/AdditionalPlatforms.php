@@ -58,6 +58,36 @@ class AdditionalPlatforms extends \common\classes\modules\ModuleExtensions {
                 " IF({$_search_platform_url} = 'www." . tep_db_input($REQUEST_PLATFORM_URL) . "',0,1) " .
                 "LIMIT 1 "
             ));
+
+            // The "is_default=1" branch above always matches, so receiving a row here is
+            // no proof that the database knows the address this request came in on. When
+            // neither the plain nor the "www." form of the request matches the stored
+            // URL, the row describes a different deployment - another folder, port or
+            // host - and its stale settings, most visibly "force HTTPS", answer every
+            // request with a 301 to an https:// host that does not exist. Follow the live
+            // request in that case so one database can be reused on any machine.
+            // A request that really does resolve to a known platform keeps that
+            // platform's own row and URL untouched.
+            if (is_array($platform) && $platform) {
+                $stored_url    = trim(str_replace('\\', '/', trim($platform['platform_url'], "\\/\n\r\t\v\0")), '/');
+                $request_url   = trim(str_replace('\\', '/', $REQUEST_PLATFORM_URL), '/');
+                if (strcasecmp($request_url, $stored_url) !== 0
+                    && strcasecmp('www.' . $request_url, $stored_url) !== 0) {
+                    defined('OSC_URL_AUTODETECTED') or define('OSC_URL_AUTODETECTED', true);
+                    // Published for common\classes\platform_config, which re-reads the
+                    // platform row straight from the database and would otherwise keep
+                    // using the stale URL together with the stale "force HTTPS" flag.
+                    defined('OSC_DETECTED_BASE_URL') or define('OSC_DETECTED_BASE_URL', $request_url . '/');
+                    defined('OSC_DETECTED_IS_SECURE') or define('OSC_DETECTED_IS_SECURE', $request_type === 'SSL');
+                    defined('OSC_DETECTED_PLATFORM_ID') or define('OSC_DETECTED_PLATFORM_ID', (int)$platform['platform_id']);
+
+                    if (!empty($platform['ssl_enabled']) && $request_type !== 'SSL') {
+                        $platform['ssl_enabled'] = 0;
+                    }
+                    $platform['platform_url'] = $request_url;
+                    $platform['_platform_url_secure'] = $request_url;
+                }
+            }
         }
 
         return $platform;

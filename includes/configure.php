@@ -114,6 +114,41 @@ defined('STORE_SESSIONS') or define('STORE_SESSIONS', 'mysql');
             }
       }
 
+    // Resolve the store URL from the live request BEFORE anything acts on the stored
+    // value. A database carried over from another machine (or from an older dump)
+    // still holds that machine's host, folder and "force HTTPS" flag, which on a
+    // plain HTTP install answers every request with a 301 to an https:// host that
+    // does not exist. Comparing the stored platform_url with the current request
+    // lets us correct all of it up front.
+    // Skipped when the AdditionalPlatforms extension is active, because that
+    // extension intentionally serves several domains from one database, and on CLI
+    // runs, where there is no request to derive a URL from.
+    $multi_domain = (defined('AdditionalPlatforms_EXTENSION_STATUS') && AdditionalPlatforms_EXTENSION_STATUS == 'True');
+    $is_web_request = (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME']));
+    if (!$multi_domain && $is_web_request && !defined('OSC_SKIP_URL_AUTODETECT')) {
+        $detected_url = rtrim($_SERVER['HTTP_HOST'].'/'.trim(dirname($_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR), '/');
+        $detected_url = trim(preg_replace('#[\\\\/]+#', '/', $detected_url), '/');
+        $configured_url = trim(preg_replace('#[\\\\/]+#', '/', rtrim($platform['platform_url'], "\\/\n\r\t\v\0")), '/');
+
+        if (strcasecmp($detected_url, $configured_url) !== 0) {
+            defined('OSC_URL_AUTODETECTED') or define('OSC_URL_AUTODETECTED', true);
+            // Published for common\classes\platform_config, which re-reads the platform
+            // row straight from the database and would otherwise keep using the stale
+            // URL together with the stale "force HTTPS" flag.
+            defined('OSC_DETECTED_BASE_URL') or define('OSC_DETECTED_BASE_URL', $detected_url . '/');
+            defined('OSC_DETECTED_IS_SECURE') or define('OSC_DETECTED_IS_SECURE', $request_type === 'SSL');
+            defined('OSC_DETECTED_PLATFORM_ID') or define('OSC_DETECTED_PLATFORM_ID', (int)$platform['platform_id']);
+
+            if (!empty($platform['ssl_enabled']) && $request_type !== 'SSL') {
+                // The flag belongs to a different deployment, so honouring it here would
+                // only bounce the visitor to an https:// host that cannot be reached.
+                $platform['ssl_enabled'] = 0;
+            }
+            $platform['platform_url'] = $detected_url;
+            $platform['_platform_url_secure'] = $detected_url;
+        }
+    }
+
     if ($platform['ssl_enabled'] == 2) {
         if ($request_type == 'NONSSL') {
             $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -137,11 +172,13 @@ defined('STORE_SESSIONS') or define('STORE_SESSIONS', 'mysql');
     }else{
       $parsed = parse_url('http://'.rtrim($platform['platform_url'], "\\/\n\r\t\v\0").'/');
       $parsed_ssl = parse_url('http://'.rtrim($platform['_platform_url_secure']).'/');
+
       $port = isset($parsed['port']) && $parsed['port']!='' ? ":".$parsed['port'] : "";
       defined('HTTP_SERVER') or define('HTTP_SERVER', $secureProtocol . '://' . $parsed['host'] . $port);
       defined('HTTPS_SERVER') or define('HTTPS_SERVER', 'https://' . $parsed_ssl['host'] . $port);
       // {{ www redirect
-      if ( isset($_SERVER['HTTP_HOST']) && stripos($_SERVER['HTTP_HOST'],'www.')!==0 && stripos(($request_type==='SSL'?$parsed_ssl['host']:$parsed['host']),'www.')===0 ){
+      if ( !defined('OSC_URL_AUTODETECTED')
+        && isset($_SERVER['HTTP_HOST']) && stripos($_SERVER['HTTP_HOST'],'www.')!==0 && stripos(($request_type==='SSL'?$parsed_ssl['host']:$parsed['host']),'www.')===0 ){
           if (!isset($_SERVER['REQUEST_METHOD']) || strtoupper($_SERVER['REQUEST_METHOD'])=='GET') {
               $redirect = ($request_type === 'SSL' ? HTTPS_SERVER : HTTP_SERVER) . preg_replace('#/index\.php#', '/', $_SERVER['REQUEST_URI']);
               header("HTTP/1.1 301 Moved Permanently");

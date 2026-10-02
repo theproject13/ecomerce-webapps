@@ -4,11 +4,25 @@
 /printshop/
 /b2b-supermarket/
 
-# Runtime caches, logs, compiled templates (auto-regenerated)
-/lib/*/runtime/
-*/runtime/
-/themes/*/cache/
-/assets/
+# Runtime caches, logs, compiled templates.
+# The directories themselves are committed through .gitkeep files, so a fresh
+# clone always has them and the app never fails on a missing writable path.
+# Only their generated content is ignored.
+/assets/*
+!/assets/.gitkeep
+/lib/*/runtime/*
+!/lib/*/runtime/.gitkeep
+/runtime/*
+!/runtime/.gitkeep
+/themes/*/cache/*
+!/themes/*/cache/.gitkeep
+
+# NOTE: a few vendor packages ship their own .gitignore that matches real asset
+# directories case-insensitively on Windows, so files that exist on a Windows
+# checkout never get committed (e.g. lib/vendor/bower-asset/jquery.inputmask/
+# dist/inputmask/ - the vendor rule is "InputMask/"). A nested .gitignore always
+# wins over this one, so those files must be added explicitly with:
+#   git add -f lib/vendor/bower-asset/jquery.inputmask/dist/inputmask
 
 # Composer / editor
 /vendor/

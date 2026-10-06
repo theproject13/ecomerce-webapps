@@ -1,0 +1,193 @@
+/* =========================================================
+   HERO SLIDER
+   Di bawah header, melebar penuh sampai gutter yang sama dengan konten.
+   ========================================================= */
+.tp-hero {
+  position: relative;
+  margin-top: var(--tp-gap);
+  overflow: hidden;
+  border-radius: var(--tp-radius-lg);
+  background: var(--tp-white);
+  box-shadow: var(--tp-shadow);
+  aspect-ratio: 1200 / 400;
+}
+
+@media (min-width: 640px) {
+  .tp-hero {
+    aspect-ratio: 1200 / 380;
+  }
+}
+
+/* Track digeser dengan transform, bukan mengubah layout. */
+.tp-hero__track {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  transition: transform 0.45s ease;
+  will-change: transform;
+}
+
+.tp-hero__slide {
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+}
+
+.tp-hero__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Caption disembunyikan di layar kecil supaya banner tetap terbaca utuh. */
+.tp-hero__caption {
+  position: absolute;
+  inset: auto auto 0 0;
+  padding: 14px 16px;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+
+.tp-hero__caption h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.tp-hero__caption p {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+.tp-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  color: var(--tp-text);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+/* --- navigasi --- */
+.tp-hero__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tp-hero__nav:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.tp-hero__nav svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tp-hero__nav--prev {
+  left: 10px;
+}
+
+.tp-hero__nav--next {
+  right: 10px;
+}
+
+/* --- dots --- */
+.tp-hero__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.tp-hero__dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: width 0.2s, background 0.2s;
+}
+
+.tp-hero__dot--active {
+  width: 16px;
+  border-radius: 3px;
+  background: #fff;
+}
+
+@media (min-width: 640px) {
+  .tp-hero__caption {
+    display: block;
+    padding: 18px 22px;
+  }
+
+  .tp-hero__caption h2 {
+    font-size: 22px;
+  }
+
+  .tp-hero__caption p {
+    font-size: 13px;
+  }
+
+  .tp-hero__nav {
+    display: flex;
+  }
+
+  .tp-hero__dots {
+    bottom: 12px;
+  }
+
+  .tp-hero__dot {
+    width: 7px;
+    height: 7px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tp-hero {
+    aspect-ratio: 1200 / 330;
+  }
+
+  .tp-hero__caption {
+    padding: 24px 32px;
+  }
+
+  .tp-hero__caption h2 {
+    font-size: 28px;
+  }
+
+  .tp-hero__caption p {
+    font-size: 14px;
+  }
+
+  .tp-hero__cta {
+    padding: 8px 18px;
+    font-size: 12.5px;
+  }
+}

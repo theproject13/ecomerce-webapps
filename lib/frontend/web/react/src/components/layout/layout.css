@@ -1,0 +1,431 @@
+/* =========================================================
+   HEADER
+   Blok hijaunya full-width (menempel tepi viewport), tapi isinya dibatasi
+   --tp-container + --tp-gutter supaya tepi kirinya persis sama dengan
+   konten di bawahnya.
+   ========================================================= */
+.tp-header {
+  background: var(--tp-green);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tp-header__inner {
+  max-width: var(--tp-container);
+  margin: 0 auto;
+  padding: 10px var(--tp-gutter) 8px;
+}
+
+.tp-header__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tp-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.tp-header__logo-mark {
+  width: 30px;
+  height: 30px;
+}
+
+.tp-header__logo span {
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+/* Searchbar mengisi seluruh sisa ruang di antara logo dan ikon. */
+.tp-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 20px;
+  padding: 9px 16px;
+  gap: 8px;
+}
+
+.tp-search__icon {
+  width: 14px;
+  height: 14px;
+  color: var(--tp-text-hint);
+  flex-shrink: 0;
+}
+
+.tp-search__input {
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--tp-text);
+  width: 100%;
+  background: transparent;
+  min-width: 0;
+}
+
+.tp-search__input::placeholder {
+  color: var(--tp-text-hint);
+}
+
+.tp-header__icons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.tp-header__icon {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/*
+ * Hover ikon.
+ *
+ * sebelumnya ikon berubah jadi hijau di header yang juga hijau, jadi efeknya
+ * tidak terlihat sama sekali. Sekarang hover memakai lingkaran putih solid
+ * dengan ikon hijau di atasnya: kontrasnya jelas dan tetap terbaca.
+ */
+.tp-header__icon:hover,
+.tp-header__icon:focus-visible {
+  background: #fff;
+  color: var(--tp-green);
+}
+
+/* --- tombol masuk / daftar, hanya tampil saat belum login --- */
+.tp-header__auth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tp-header__auth-btn {
+  border: 1px solid #fff;
+  color: #fff;
+  background: transparent;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tp-header__auth-btn:hover,
+.tp-header__auth-btn:focus-visible {
+  background: #fff;
+  color: var(--tp-green);
+}
+
+.tp-header__auth-btn--solid {
+  background: #fff;
+  color: var(--tp-green);
+}
+
+.tp-header__auth-btn--solid:hover,
+.tp-header__auth-btn--solid:focus-visible {
+  background: transparent;
+  color: #fff;
+}
+
+/* --- avatar, hanya tampil saat sudah login --- */
+.tp-header__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--tp-green);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tp-header__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tp-header__badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--tp-red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-header__tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tp-header__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tp-tab {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tp-tab:hover {
+  background: #fff;
+  color: var(--tp-green);
+}
+
+.tp-tab--active {
+  background: #fff;
+  color: var(--tp-green);
+}
+
+/* ===== BOTTOM NAV (hanya mobile) ===== */
+.tp-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid var(--tp-border);
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0 8px;
+  z-index: 100;
+}
+
+.tp-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  flex: 1;
+}
+
+.tp-bottom-nav__icon {
+  position: relative;
+  display: flex;
+}
+
+.tp-bottom-nav__icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--tp-text-hint);
+  transition: color 0.2s;
+}
+
+.tp-bottom-nav__item > span:last-child {
+  font-size: 9px;
+  color: var(--tp-text-hint);
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.tp-bottom-nav__item--active .tp-bottom-nav__icon svg,
+.tp-bottom-nav__item--active > span:last-child {
+  color: var(--tp-green);
+}
+
+.tp-bottom-nav__badge {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  background: var(--tp-red);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast--show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== SKELETON GRID ===== */
+.tp-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .tp-skeleton-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tp-skeleton-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE HEADER
+   Padding horizontal sudah diurus oleh --tp-gutter, jadi di media query ini
+   cuma ubah ukuran glyph dan jarak antar ikon.
+   ========================================================= */
+@media (min-width: 1024px) {
+  .tp-header__inner {
+    padding: 12px var(--tp-gutter) 10px;
+  }
+
+  .tp-header__logo-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .tp-header__logo span {
+    font-size: 22px;
+  }
+
+  .tp-search {
+    padding: 11px 20px;
+  }
+
+  .tp-search__icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tp-search__input {
+    font-size: 14px;
+  }
+
+  .tp-header__icons {
+    gap: 20px;
+  }
+
+  .tp-header__icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .tp-tab {
+    padding: 6px 18px;
+    font-size: 12px;
+  }
+
+  /* Navigasi bawah tidak relevan di desktop. */
+  .tp-bottom-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .tp-header__top {
+    gap: 8px;
+  }
+
+  .tp-header__icons {
+    gap: 10px;
+  }
+
+  .tp-header__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tp-header__logo span {
+    font-size: 16px;
+  }
+
+  .tp-header__logo-mark {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/*
+ * Di bawah 640px logo, tombol auth, dan tiga ikon tidak muat satu baris
+ * bersama searchbar. Searchbar dipindah ke baris sendiri supaya tidak
+ * saling dorong dan tidak membuat halaman scroll horizontal.
+ */
+@media (max-width: 639px) {
+  .tp-header__top {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .tp-search {
+    order: 3;
+    flex: 1 0 100%;
+  }
+
+  .tp-header__logo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}

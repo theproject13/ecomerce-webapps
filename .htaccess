@@ -18,6 +18,49 @@ RewriteRule /*\.log($) - [F,L]
 RewriteCond %{HTTP:Authorization} ^(.+)$
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+# Source React tidak boleh diakses lewat web. Dilindungi juga oleh
+# lib/frontend/web/react/.htaccess; aturan ini menutup jalur dari root
+# instalasi.
+RewriteRule ^lib/frontend/web/react/(src|tests|node_modules)($|/) - [F,L]
+
+# Aset hasil build React. Prefix /react-assets/ dipilih karena /assets/ di
+# root sudah dipakai bundle legacy (folder berhash seperti 1706d855).
+# VITE_BASE_PATH=/osc414/react-assets/ sehingga Vite menulis
+# /osc414/react-assets/assets/x.js; karena itu rewrite ini menuju root
+# public/, bukan public/assets/.
+#
+# /react-assets/ tanpa nama file dilayani DirectoryIndex menjadi shell React
+# juga. Tidak di-redirect ke homepage karena targetnya harus path instalasi
+# yang absolute, sedangkan .htaccess tidak boleh meng-hardcode "/osc414/".
+RewriteRule ^react-assets/(.*)$ lib/frontend/web/react/public/$1 [L]
+
+# Homepage React TIDAK dilayani dari sini, melainkan dari
+# lib/frontend/web/react/ReactShell.php yang dipanggil
+# lib/frontend/web/index.php.
+#
+# Alasannya: /furniture/, /watch/, /b2b-supermarket/ dan /printshop/ adalah
+# direktori sungguhan. Untuk request direktori, path per-direktori yang
+# diteruskan mod_rewrite adalah string kosong, sehingga "RewriteRule ^$ ..."
+# ikut cocok untuk keempat URL itu dan halaman PHP channel tertimpa shell
+# React. PHP sudah tahu platform mana yang diakses lewat
+# OSC_DETECTED_PLATFORM_ID (lihat includes/configure.php), jadi Homepage
+# React bisa diputuskan per platform tanpa menyebut nama folder di sini.
+#
+# Jangan menambahkan fallback SPA di file ini: /catalog, /cart, /checkout
+# dan route lain milik router PHP.
+#
+# Direktori instalasi sendiri tidak punya index.html, jadi DirectoryIndex
+# otomatis jatuh ke index.php dan mencapai titik ReactShell di atas.
+
+# Backend admin dilayani pada host terpisah (admin.localhost, lihat
+# conf/extra/httpd-vhosts.conf). Di kedua host /admin harus masuk ke router
+# backend, bukan catch-all storefront di bawah.
+#
+# Do NOT uncomment the "-d" condition: the satellite platforms
+# (furniture, watch, b2b-supermarket, printshop) are real directories that
+# must still be routed through index.php by the platform URL manager.
+RewriteRule ^admin($|/) - [L]
+
 # if a directory or a file exists, use it directly
 RewriteCond %{REQUEST_FILENAME} !-f
 #RewriteCond %{REQUEST_FILENAME} !-d

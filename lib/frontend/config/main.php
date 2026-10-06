@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/params-local.php'),
@@ -47,8 +47,8 @@ return [
             'enableStrictParsing' => false,
             'showScriptName' => false,
             'rules' => [
-                ['class' => 'app\components\TlUrlRule', /* 'controller' => 'site' */],
-                '<controller:[\w-]+>'=>'<controller>/index',
+                'api/<controller:[\w-]+>/<action:[\w-]+>' => 'api/<controller>/<action>',
+                ['class' => 'app\\components\\TlUrlRule', /* 'controller' => 'site' */],
                 '/' => 'index',
             ],
         ],
@@ -129,3 +129,6 @@ return [
     ],
     'params' => $params,
 ];
+
+
+

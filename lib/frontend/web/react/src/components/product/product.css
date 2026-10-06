@@ -1,0 +1,334 @@
+/* =========================================================
+   PRODUCT CARD
+   ------------------------------------------------------------
+   Semua ukuran diturunkan dari token di styles/tokens.css:
+     --tp-card-w, --tp-card-media-h, --tp-card-body-h, dst.
+
+   Grid dan flash sale (scroll) memakai token yang sama, jadi lebar dan
+   tinggi card di dua section itu identik. Jangan hardcode px di sini,
+   karena itu yang bikin tidak konsisten.
+   ========================================================= */
+.tp-card {
+  position: relative;
+  width: 100%;
+  background: var(--tp-white);
+  border-radius: var(--tp-radius);
+  overflow: hidden;
+  box-shadow: var(--tp-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--tp-shadow-md);
+}
+
+.tp-card__link {
+  display: block;
+  height: 100%;
+  color: inherit;
+}
+
+/* --- media --- */
+.tp-card__media {
+  position: relative;
+  width: 100%;
+  height: var(--tp-card-media-h);
+  background: #f9f9f9;
+  overflow: hidden;
+}
+
+.tp-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tp-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #d6d6dc;
+  user-select: none;
+}
+
+/* --- badge & ribbon --- */
+.tp-card__badges {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.tp-card__badge {
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #fff;
+  background: var(--tp-red);
+}
+
+.tp-card__badge--muted {
+  background: var(--tp-text-hint);
+}
+
+.tp-card__ribbon {
+  position: absolute;
+  top: 8px;
+  right: -22px;
+  transform: rotate(35deg);
+  background: var(--tp-pink);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* --- body: tinggi tetap + grid baris, biar tiap baris rata --- */
+.tp-card__body {
+  display: grid;
+  grid-template-rows:
+    var(--tp-card-name-h)
+    auto var(--tp-card-meta-h)
+    auto auto;
+  align-content: start;
+  height: var(--tp-card-body-h);
+  padding: 8px 10px 10px;
+}
+
+.tp-card__name {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--tp-text);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- harga --- */
+.tp-card__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tp-card__price-now {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--tp-pink-banner);
+}
+
+.tp-card:not(.tp-card--sale) .tp-card__price-now {
+  color: var(--tp-text);
+}
+
+.tp-card__price-was {
+  font-size: 10.5px;
+  color: var(--tp-text-hint);
+  text-decoration: line-through;
+}
+
+/* --- meta: rating / terjual (tinggi tetap) --- */
+.tp-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  height: var(--tp-card-meta-h);
+  overflow: hidden;
+}
+
+.tp-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f5a623;
+  font-size: 10.5px;
+}
+
+.tp-card__rating svg {
+  width: 11px;
+  height: 11px;
+}
+
+.tp-card__muted {
+  font-size: 10px;
+  color: var(--tp-text-hint);
+}
+
+/* --- baris info --- */
+.tp-card__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 15px;
+  font-size: 10px;
+  color: var(--tp-text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tp-card__row svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  color: var(--tp-text-hint);
+}
+
+.tp-card__row--muted {
+  color: var(--tp-text-hint);
+}
+
+.tp-card__stock--ok {
+  color: var(--tp-green);
+  font-weight: 600;
+}
+
+/* --- seller: tinggi tetap supaya card tetap rata walau ada/tidak seller --- */
+.tp-card__seller {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--tp-border);
+  font-size: 10.5px;
+  color: var(--tp-text-secondary);
+  overflow: hidden;
+}
+
+.tp-card__seller-logo {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.tp-card__seller-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tp-card__verified {
+  display: inline-flex;
+  color: var(--tp-blue);
+}
+
+.tp-card__verified svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* =========================================================
+   GRID + SCROLL: dua-duanya pakai token yang sama
+   ========================================================= */
+.tp-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tp-product-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.tp-product-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card di flash sale: lebar & tinggi persis sama dengan card di grid. */
+.tp-card--scroll {
+  flex: 0 0 var(--tp-card-w);
+  width: var(--tp-card-w);
+}
+
+.tp-product-scroll__link {
+  scroll-snap-align: start;
+  flex: 0 0 var(--tp-card-w);
+  width: var(--tp-card-w);
+  display: block;
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  .tp-card__body {
+    padding: 10px 12px 12px;
+  }
+
+  .tp-card__name {
+    font-size: 12px;
+  }
+
+  .tp-card__price-now {
+    font-size: 14px;
+  }
+
+  .tp-card__row,
+  .tp-card__seller {
+    font-size: 11px;
+  }
+
+  .tp-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .tp-product-scroll {
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tp-card__name {
+    font-size: 12.5px;
+  }
+
+  .tp-card__price-now {
+    font-size: 14.5px;
+  }
+
+  .tp-product-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .tp-product-scroll {
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .tp-product-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .tp-card__name {
+    font-size: 11px;
+  }
+
+  .tp-card__price-now {
+    font-size: 12px;
+  }
+}

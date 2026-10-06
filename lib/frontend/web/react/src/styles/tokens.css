@@ -1,0 +1,66 @@
+:root {
+  --tp-green: #42b549;
+  --tp-green-dark: #2e9e35;
+  --tp-green-light: #e8f5e9;
+
+  --tp-orange: #f9a825;
+  --tp-red: #e53935;
+  --tp-pink: #e91e63;
+  --tp-pink-banner: #ff4081;
+
+  --tp-blue: #1a73e8;
+  --tp-violet: #7c4dff;
+  --tp-cyan: #00b8a9;
+
+  --tp-bg: #f5f5f5;
+  --tp-white: #ffffff;
+  --tp-text: rgba(0, 0, 0, 0.87);
+  --tp-text-secondary: rgba(0, 0, 0, 0.54);
+  --tp-text-hint: rgba(0, 0, 0, 0.38);
+  --tp-border: #e0e0e0;
+
+  --tp-radius: 8px;
+  --tp-radius-lg: 12px;
+  --tp-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --tp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  --tp-container: 1280px;
+
+  /* Gutter horizontal. Dipakai oleh header, konten, section, dan footer supaya
+     semua tepi kiri/kanan jatuh di garis yang sama. */
+  --tp-gutter: 12px;
+  --tp-gap: 8px;
+
+  /* ---- Sizing kartu produk ----
+     Satu sumber ukuran untuk grid DAN flash sale. Baris scroll tidak boleh
+     punya lebar/tinggi sendiri, karena itu yang bikin tidak konsisten.
+     Ubah nilai di sini, semua card ikut. */
+  --tp-card-w: 168px;
+  --tp-card-media-h: 168px;
+  --tp-card-name-h: 32px;
+  --tp-card-meta-h: 15px;
+  --tp-card-body-h: 116px;
+
+  --tp-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+/* Gutter ikut melebar di layar besar supaya konten tidak menempel tepi. */
+@media (min-width: 640px) {
+  :root {
+    --tp-gutter: 20px;
+    --tp-gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --tp-gutter: 24px;
+    --tp-gap: 14px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --tp-gap: 16px;
+  }
+}

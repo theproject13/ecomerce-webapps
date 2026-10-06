@@ -16,7 +16,7 @@ $__osc_host   = isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== '' ? $
 
 // Absolute filesystem path of the store root, derived from this file's location:
 // <root>/admin/includes/local/configure.php  ->  <root>
-$__osc_fs_root = str_replace('\\', '/', dirname(dirname(dirname(dirname(__FILE__)))));
+$__osc_fs_root = str_replace('\\', '/', dirname(dirname(dirname(__FILE__))));
 $__osc_doc_root = str_replace('\\', '/', isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '');
 $__osc_doc_root = rtrim($__osc_doc_root, '/');
 
@@ -27,16 +27,10 @@ if ($__osc_doc_root !== '' && strpos($__osc_fs_root . '/', $__osc_doc_root . '/'
     $__osc_base_path = '/' . trim(substr($__osc_fs_root, strlen($__osc_doc_root)), '/') . '/';
 }
 
-// Host publik untuk link katalog. Backend admin dilayani pada host terpisah
-// (admin.localhost) yang hanya mengizinkan /admin, jadi link "view store",
-// gambar produk dan URL channel harus diarahkan ke host storefront.
-$__osc_admin_host = 'admin.localhost';
-$__osc_public_host = (strtolower($__osc_host) === $__osc_admin_host) ? 'localhost' : $__osc_host;
-
 define('HTTP_SERVER', $__osc_scheme . '://' . $__osc_host);
 define('HTTPS_SERVER', $__osc_is_ssl ? 'https://' . $__osc_host : 'http://' . $__osc_host);
-define('HTTP_CATALOG_SERVER', 'http://' . $__osc_public_host);
-define('HTTPS_CATALOG_SERVER', ($__osc_is_ssl && strtolower($__osc_public_host) !== 'localhost') ? 'https://' . $__osc_public_host : 'http://' . $__osc_public_host);
+define('HTTP_CATALOG_SERVER', $__osc_scheme . '://' . $__osc_host);
+define('HTTPS_CATALOG_SERVER', $__osc_is_ssl ? 'https://' . $__osc_host : 'http://' . $__osc_host);
 define('ENABLE_SSL', $__osc_is_ssl);
 define('ENABLE_SSL_CATALOG', $__osc_is_ssl);
 

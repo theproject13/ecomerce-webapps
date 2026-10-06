@@ -28,4 +28,14 @@ $config = yii\helpers\ArrayHelper::merge(
 );
 
 $application = new yii\web\Application($config);
+
+// Homepage storefront dan path yang terdaftar di ReactShell::$reactPaths
+// dilayani oleh shell React, tapi hanya untuk platform utama dan hanya pada
+// request GET. Semua route lain (/catalog, /shopping-cart, /account, ...)
+// tetap dirender router PHP di bawah.
+require_once(__DIR__ . '/react/ReactShell.php');
+if (ReactShell::isReactRequest() && ReactShell::send()) {
+    exit;
+}
+
 $application->run();

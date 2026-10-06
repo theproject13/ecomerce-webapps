@@ -1,0 +1,18 @@
+# Frontend React: source code tidak boleh diakses langsung lewat web.
+#
+# Yang boleh dilayani hanya folder public/ (hasil build Vite), dan itupun
+# tidak lewat path ini melainkan lewat prefix /osc414/react-assets/ yang
+# di-rewrite oleh .htaccess di root instalasi.
+#
+# Semua file di src/, tests/, node_modules/, vite.config.ts, tsconfig.json,
+# dan package.json akan bocor sebagai teks biasa jika tidak ditutup di sini.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !/react/public/ [NC]
+RewriteRule . - [F,L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+Order deny,allow
+Deny from all
+</IfModule>

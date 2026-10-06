@@ -1,0 +1,113 @@
+/* =========================================================
+   KATALOG KANAL
+   Halaman ini hanya menambah blok yang tidak ada di home.css
+   (judul, kolom cari, baris ringkasan, paginasi). Kartu produk,
+   chip, filter bar, dan grid sengaja memakai kelas yang sudah
+   dipakai homepage supaya tampilannya konsisten.
+   ========================================================= */
+
+.tp-catalog__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tp-text);
+  margin: 0;
+}
+
+/* Kolom cari. Border dan radius mengikuti .tp-chip supaya terlihat
+   sekeluarga dengan chip filter di bawahnya. */
+.tp-catalog__search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tp-catalog__search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--tp-border);
+  background: var(--tp-white);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--tp-text);
+  font-family: inherit;
+}
+
+.tp-catalog__search input:focus {
+  outline: none;
+  border-color: var(--tp-green);
+}
+
+.tp-catalog__search button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--tp-green);
+  background: var(--tp-green);
+  color: #fff;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.tp-catalog__search button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Select kategori harus setinggi chip lain, kalau tidak baris filter
+   terlihat meleset. */
+.tp-filter-bar select {
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  max-width: 140px;
+}
+
+.tp-catalog__meta {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: var(--tp-text-hint);
+}
+
+.tp-catalog__meta-line {
+  display: block;
+  width: 160px;
+  height: 11px;
+}
+
+/* Paginasi. Tombol nonaktif tidak boleh kelihatan bisa diklik. */
+.tp-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tp-pager .tp-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tp-pager__page {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--tp-text-secondary);
+}
+
+.tp-pager__page svg {
+  width: 13px;
+  height: 13px;
+  color: var(--tp-text-hint);
+}

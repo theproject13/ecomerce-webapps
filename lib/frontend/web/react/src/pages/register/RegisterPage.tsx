@@ -53,14 +53,19 @@ export function RegisterPage() {
     if (!EMAIL_PATTERN.test(email.trim())) {
       next.email_address = 'Masukkan email yang valid'
     }
-    if (firstname.trim().length < 1) {
-      next.firstname = 'Nama depan wajib diisi'
+    // Batas mengikuti server: ENTRY_FIRST_NAME_MIN_LENGTH / ENTRY_LAST_NAME_MIN_LENGTH = 2
+    // (CustomerRegistration::requiredOnRegister). Jangan diturunkan di sini, atau
+    // form lolos validasi client lalu ditolak server.
+    if (firstname.trim().length < 2) {
+      next.firstname = 'Nama depan minimal 2 karakter'
     }
-    if (lastname.trim().length < 1) {
-      next.lastname = 'Nama belakang wajib diisi'
+    if (lastname.trim().length < 2) {
+      next.lastname = 'Nama belakang minimal 2 karakter'
     }
-    if (password.length < 8) {
-      next.password = 'Kata sandi minimal 8 karakter'
+    // ENTRY_PASSWORD_MIN_LENGTH = 12 (CustomerRegistration::requiredOnRegister).
+    // Client sebelumnya 8 - penyebab akun tidak tersimpan lalu login gagal.
+    if (password.length < 12) {
+      next.password = 'Kata sandi minimal 12 karakter'
     } else if (password !== confirmation) {
       next.confirmation = 'Konfirmasi kata sandi tidak cocok'
     }

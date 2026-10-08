@@ -11,63 +11,68 @@ import {
   UserIcon,
 } from '../../components/ui/Icon'
 import { STORE_NAME } from '../../lib/brand'
-import { routeUrl, routes } from '../../lib/routes'
+import { register } from '../../features/account/account-api'
 import './register.css'
 
 type FieldErrors = {
-  identity?: string
-  fullName?: string
+  email_address?: string
+  firstname?: string
+  lastname?: string
   password?: string
-  terms?: string
+  confirmation?: string
+  gdrp?: string
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_PATTERN = /^(\+62|62|08)\d{8,12}$/
 
-function isPhoneOrEmail(value: string): boolean {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return false
-  }
-
-  return EMAIL_PATTERN.test(trimmed) || PHONE_PATTERN.test(trimmed.replace(/[\s-]/g, ''))
-}
-
-/** Halaman Daftar. Branding memakai STORE_NAME, bukan "tokopedia". */
+/**
+ * Halaman Daftar.
+ *
+ * Submit dikirim ke /api/account/register yang memanggil CustomerRegistration
+ * scenario 'registration' milik tema PHP, jadi aturan validasi (email unik,
+ * panjang password, gdrp) identik dengan toko. Field alamat, gender,
+ * dob, dan telepon tidak ditampilkan karena konfigurasi ACCOUNT_*-nya
+ * 'visible'/'disabled' — tidak wajib saat registrasi di instalasi ini.
+ */
 export function RegisterPage() {
   const { showToast } = useToast()
-  const [identity, setIdentity] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [firstname, setFirstname] = useState('')
+  const [lastname, setLastname] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [revealPassword, setRevealPassword] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [banner, setBanner] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   function validate(): FieldErrors {
     const next: FieldErrors = {}
 
-    if (!isPhoneOrEmail(identity)) {
-      next.identity = 'Masukkan nomor HP atau email yang valid'
+    if (!EMAIL_PATTERN.test(email.trim())) {
+      next.email_address = 'Masukkan email yang valid'
     }
-
-    if (fullName.trim().length < 2) {
-      next.fullName = 'Nama lengkap wajib diisi'
+    if (firstname.trim().length < 1) {
+      next.firstname = 'Nama depan wajib diisi'
     }
-
+    if (lastname.trim().length < 1) {
+      next.lastname = 'Nama belakang wajib diisi'
+    }
     if (password.length < 8) {
       next.password = 'Kata sandi minimal 8 karakter'
+    } else if (password !== confirmation) {
+      next.confirmation = 'Konfirmasi kata sandi tidak cocok'
     }
-
     if (!agreed) {
-      next.terms = 'Setujui Syarat & Ketentuan terlebih dahulu'
+      next.gdrp = 'Setujui Syarat & Ketentuan terlebih dahulu'
     }
-
     return next
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setBanner(null)
 
     const next = validate()
     setErrors(next)
@@ -78,16 +83,48 @@ export function RegisterPage() {
     }
 
     setSubmitting(true)
+    try {
+      const payload = await register({
+        email,
+        password,
+        confirmation,
+        firstname,
+        lastname,
+        gdrp: agreed,
+      })
 
-    // Belum tersambung ke PHP. Endpoint account/create (scenario=create)
-    // menuntut: email_address, password, confirmation, firstname, lastname,
-    // telephone, landline, gender, dob, gdrp, dan CSRF.
-    // Form ini baru punya 3 field tersebut, jadi tidak dikirim dulu supaya
-    // tidak membuat akun setengah jadi. Lihat CustomerRegistration::rules().
-    window.setTimeout(() => {
+      if (!payload.ok) {
+        setBanner(payload.error || 'Pendaftaran gagal. Periksa kembali data Anda.')
+        const fieldErrors: FieldErrors = {}
+        const map: Array<[keyof FieldErrors, string]> = [
+          ['email_address', 'email_address'],
+          ['firstname', 'firstname'],
+          ['lastname', 'lastname'],
+          ['password', 'password'],
+          ['confirmation', 'confirmation'],
+
+        ]
+        for (const [key, source] of map) {
+          if (payload.field_errors?.[source]) {
+            fieldErrors[key] = payload.field_errors[source]
+          }
+        }
+        if (payload.field_errors?.gdrp) {
+          fieldErrors.gdrp = payload.field_errors.gdrp
+        }
+        setErrors(fieldErrors)
+        return
+      }
+
+      // Registrasi sukses langsung login di PHP. Muat ulang shell supaya
+      // header membaca session baru.
+      window.location.assign(payload.redirect.account)
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : 'Pendaftaran gagal. Coba lagi.')
+
+    } finally {
       setSubmitting(false)
-      showToast('Pendaftaran belum tersambung ke server', 'error')
-    }, 600)
+    }
   }
 
   return (
@@ -141,7 +178,7 @@ export function RegisterPage() {
             <line x1="20" y1="340" x2="480" y2="340" stroke="#fff" strokeWidth="1.5" opacity="0.2" />
           </svg>
 
-          <p className="tp-auth__tagline">Jual Beli Mudon, Hemat dan Nyaman</p>
+          <p className="tp-auth__tagline">Belanja Mudah, Hemat dan Nyaman</p>
           <p className="tp-auth__art-sub">
             Gabung jutaan orang yang sudah merasakan belanja online terpercaya di {STORE_NAME}
           </p>
@@ -158,7 +195,7 @@ export function RegisterPage() {
           <h1 className="tp-auth__heading">Daftar Sekarang</h1>
           <p className="tp-auth__subheading">
             Sudah punya akun {STORE_NAME}?{' '}
-            <a href={routeUrl(routes.login)}>Masuk</a>
+            <Link to="/login">Masuk</Link>
           </p>
 
           <div className="tp-auth__social">
@@ -178,41 +215,63 @@ export function RegisterPage() {
             <span className="tp-auth__divider-line" />
           </div>
 
+          {banner ? <div className="tp-auth__banner tp-auth__banner--error">{banner}</div> : null}
+
           <form onSubmit={handleSubmit} noValidate>
-            <div className={`tp-auth__field${errors.identity ? ' tp-auth__field--error' : ''}`}>
-              <label htmlFor="identity">Nomor HP atau E-mail</label>
-              <UserIcon className="tp-auth__field-icon" />
+            <div className={`tp-auth__field${errors.email_address ? ' tp-auth__field--error' : ''}`}>
+              <label htmlFor="email">E-mail</label>
+              <EnvelopeIcon className="tp-auth__field-icon" />
               <input
-                id="identity"
+                id="email"
                 className="tp-auth__input"
-                type="text"
-                value={identity}
-                placeholder="Contoh: email@domain.com atau 08123xxx"
-                autoComplete="off"
+                type="email"
+                value={email}
+                placeholder="email@domain.com"
+                autoComplete="email"
                 onChange={(event) => {
-                  setIdentity(event.target.value)
-                  setErrors((prev) => ({ ...prev, identity: undefined }))
+                  setEmail(event.target.value)
+                  setErrors((prev) => ({ ...prev, email_address: undefined }))
                 }}
               />
-              {errors.identity ? <span className="tp-auth__error">{errors.identity}</span> : null}
+              {errors.email_address ? <span className="tp-auth__error">{errors.email_address}</span> : null}
             </div>
 
-            <div className={`tp-auth__field${errors.fullName ? ' tp-auth__field--error' : ''}`}>
-              <label htmlFor="fullName">Nama Lengkap</label>
-              <UserIcon className="tp-auth__field-icon" />
-              <input
-                id="fullName"
-                className="tp-auth__input"
-                type="text"
-                value={fullName}
-                placeholder="Masukkan nama lengkap"
-                autoComplete="off"
-                onChange={(event) => {
-                  setFullName(event.target.value)
-                  setErrors((prev) => ({ ...prev, fullName: undefined }))
-                }}
-              />
-              {errors.fullName ? <span className="tp-auth__error">{errors.fullName}</span> : null}
+            <div className="tp-auth__row">
+              <div className={`tp-auth__field${errors.firstname ? ' tp-auth__field--error' : ''}`}>
+                <label htmlFor="firstname">Nama Depan</label>
+                <UserIcon className="tp-auth__field-icon" />
+                <input
+                  id="firstname"
+                  className="tp-auth__input"
+                  type="text"
+                  value={firstname}
+                  placeholder="Nama depan"
+                  autoComplete="given-name"
+                  onChange={(event) => {
+                    setFirstname(event.target.value)
+                    setErrors((prev) => ({ ...prev, firstname: undefined }))
+                  }}
+                />
+                {errors.firstname ? <span className="tp-auth__error">{errors.firstname}</span> : null}
+              </div>
+
+              <div className={`tp-auth__field${errors.lastname ? ' tp-auth__field--error' : ''}`}>
+                <label htmlFor="lastname">Nama Belakang</label>
+                <UserIcon className="tp-auth__field-icon" />
+                <input
+                  id="lastname"
+                  className="tp-auth__input"
+                  type="text"
+                  value={lastname}
+                  placeholder="Nama belakang"
+                  autoComplete="family-name"
+                  onChange={(event) => {
+                    setLastname(event.target.value)
+                    setErrors((prev) => ({ ...prev, lastname: undefined }))
+                  }}
+                />
+                {errors.lastname ? <span className="tp-auth__error">{errors.lastname}</span> : null}
+              </div>
             </div>
 
             <div className={`tp-auth__field${errors.password ? ' tp-auth__field--error' : ''}`}>
@@ -243,6 +302,26 @@ export function RegisterPage() {
               {errors.password ? <span className="tp-auth__error">{errors.password}</span> : null}
             </div>
 
+            <div className={`tp-auth__field${errors.confirmation ? ' tp-auth__field--error' : ''}`}>
+              <label htmlFor="confirmation">Konfirmasi Kata Sandi</label>
+              <LockIcon className="tp-auth__field-icon" />
+              <input
+                id="confirmation"
+                className="tp-auth__input"
+                type={revealPassword ? 'text' : 'password'}
+                value={confirmation}
+                placeholder="Ulangi kata sandi"
+                autoComplete="new-password"
+                onChange={(event) => {
+                  setConfirmation(event.target.value)
+                  setErrors((prev) => ({ ...prev, confirmation: undefined }))
+                }}
+              />
+              {errors.confirmation ? <span className="tp-auth__error">{errors.confirmation}</span> : null}
+            </div>
+
+
+
             <div className="tp-auth__check">
               <input
                 id="agreeTerms"
@@ -250,7 +329,7 @@ export function RegisterPage() {
                 checked={agreed}
                 onChange={(event) => {
                   setAgreed(event.target.checked)
-                  setErrors((prev) => ({ ...prev, terms: undefined }))
+                  setErrors((prev) => ({ ...prev, gdrp: undefined }))
                 }}
               />
               <label htmlFor="agreeTerms">
@@ -258,7 +337,7 @@ export function RegisterPage() {
                 <a href="#privacy">Kebijakan Privasi</a> {STORE_NAME}
               </label>
             </div>
-            {errors.terms ? <span className="tp-auth__error tp-auth__error--block">{errors.terms}</span> : null}
+            {errors.gdrp ? <span className="tp-auth__error tp-auth__error--block">{errors.gdrp}</span> : null}
 
             <button type="submit" className="tp-auth__submit" disabled={submitting}>
               {submitting ? 'Mendaftarkan...' : 'Daftar'}

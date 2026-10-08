@@ -8,11 +8,42 @@ satu dump database yang sama bisa dipakai ulang di semua perangkat.
 
 ---
 
+## 0. Ringkasan Step-by-Step (dari nol sampai jalan)
+
+```bash
+# 1. Clone repo
+cd C:\xampp\htdocs
+git clone https://github.com/theproject13/ecomerce-webapps.git osc414
+
+# 2. Jalankan XAMPP (Apache + MySQL) lewat XAMPP Control Panel
+
+# 3. Buat database + import dump
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS osc414 CHARACTER SET utf8 COLLATE utf8_general_ci;"
+cmd /c "C:\xampp\mysql\bin\mysql.exe -u root osc414 < C:\xampp\htdocs\osc414\sql\trueloaded.sql"
+
+# 4. Buka admin (backend) di browser
+#    http://localhost/osc414/admin/
+
+# 5. Install dependency React
+cd C:\xampp\htdocs\osc414\lib\frontend\web\react
+npm install
+
+# 6. Jalankan dev server React (port 5173)
+npm run dev
+# buka http://localhost:5173/
+```
+
+Detail tiap langkah ada di bagian 9 (Frontend React) dan bagian 2-7 di bawah.
+
+---
+
 ## 1. Prasyarat
 
 - **XAMPP** (Apache + MySQL/MariaDB + PHP 8.2)
   Unduh di: https://www.apachefriends.org
 - Git (hanya jika ingin clone dari GitHub)
+- **Node.js 18+** (untuk frontend React) - unduh di: https://nodejs.org
+  Cek versi: `node -v` dan `npm -v`
 
 Ekstensi PHP yang wajib aktif (XAMPP sudah menyediakannya secara default):
 
@@ -241,7 +272,66 @@ Pilih salah satu:
 
 ---
 
-## 9. Troubleshooting
+## 9. Frontend React (install, dev server, build)
+
+Frontend React ada di `lib/frontend/web/react/`. Butuh **Node.js 18+**
+(`node -v` untuk cek).
+
+### 9.1 Install dependency (sekali di awal / setelah `package.json` berubah)
+
+```powershell
+cd C:\xampp\htdocs\osc414\lib\frontend\web\react
+npm install
+```
+
+`node_modules/` tidak ikut repository, jadi wajib `npm install` di device baru.
+
+### 9.2 Jalankan dev server (development)
+
+```powershell
+cd C:\xampp\htdocs\osc414\lib\frontend\web\react
+npm run dev
+```
+
+- React dilayani Vite di **http://localhost:5173/** (`strictPort`, kalau port
+  dipakai maka gagal, bukan pindah port).
+- API (`/osc414/api/*`), halaman PHP, dan gambar tetap dilayani **Apache
+  port 80** lewat proxy di `vite.config.ts`. Jadi XAMPP (langkah 3) harus
+  jalan dulu sebelum `npm run dev`.
+- Kalau folder toko bukan `osc414`, set env di file `.env`
+  (`VITE_DEV_PROXY_TARGET=http://localhost` dan path proksi menyesuaikan).
+
+### 9.3 Build untuk production
+
+```powershell
+cd C:\xampp\htdocs\osc414\lib\frontend\web\react
+npm run build
+```
+
+- `npm run build` = typecheck (`tsc --noEmit`) lalu `vite build`.
+- Output ke folder `public/` (dikosongkan tiap build) dengan base path
+  `/osc414/react-assets/`, jadi halaman PHP memakai bundle hasil build itu.
+- `npm run build:only` = build tanpa typecheck.
+- `npm run typecheck` = cek tipe saja.
+- Setelah build, hasilnya dibuka lewat **http://localhost/osc414/**
+  (Apache), bukan port 5173.
+
+> `public/` adalah outDir build - jangan taruh file manual di sana (akan
+> terhapus). Aset statis (favicon, banner) taruh di `static/`.
+
+### 9.4 Login admin (backend)
+
+Backend tidak butuh Node - cukup XAMPP jalan:
+
+| Halaman | URL |
+|---|---|
+| Admin (backend) | http://localhost/osc414/admin/ |
+| Toko (frontend PHP) | http://localhost/osc414/ |
+| React dev | http://localhost:5173/ |
+
+---
+
+## 10. Troubleshooting
 
 | Gejala | Penyebab & Solusi |
 |---|---|
@@ -256,7 +346,7 @@ Pilih salah satu:
 
 ---
 
-## 10. Menjalankan Aplikasi Console
+## 11. Menjalankan Aplikasi Console
 
 ```bash
 cd C:\xampp\htdocs\osc414
@@ -268,7 +358,7 @@ nilai `platforms.platform_url` apa adanya.
 
 ---
 
-## 11. Sinkronisasi dengan GitHub
+## 12. Sinkronisasi dengan GitHub
 
 Folder ini di-`.gitignore` dan **tidak** ikut ter-push karena ukurannya besar:
 

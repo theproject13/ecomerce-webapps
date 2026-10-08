@@ -30,9 +30,9 @@ PRD: `docs/PRD.md`
 | **1** | Katalog | 🟢 rendah | `SELESAI (read-only)` | 2026-10-03 | 2026-10-03 | Homepage React + `api/storefront/dashboard`, `api/catalog/categories`. Listing/filter/search masih `PendingPage`. |
 | **2** | Detail Produk | 🟡 sedang | `SELESAI (read-only)` | 2026-10-04 | 2026-10-04 | `api/product/detail` + halaman `/product-detail?id=`. Reviews/wishlist/varian tidak dikerjakan, lihat §3. |
 | **4a** | CTA Keranjang | 🟠 tinggi | `SELESAI (add only)` | 2026-10-05 | 2026-10-05 | `api/cart/csrf` + `api/cart/add`; tombol "Tambah ke keranjang" dan "Beli sekarang" di halaman detail. Cart/checkout tetap PHP. |
-| **3** | Akun | 🟠 tinggi | `MENUNGGU` | — | — | login/profil/alamat/riwayat pesanan |
-| **4b** | Keranjang (halaman + update/remove) | 🟠 tinggi | `MENUNGGU` | — | — | `/shopping-cart` jadi React, badge header real-time, estimasi ongkir |
-| **5** | Checkout + Midtrans Snap | 🔴 tertinggi | `MENUNGGU` | — | — | flow lengkap + modul pembayaran |
+| **3** | Akun | 🟠 tinggi | `SELESAI (login/logout/registrasi/profil/riwayat)` | 2026-10-06 | 2026-10-06 | login/logout/registrasi/profil/riwayat pesanan via `api/account/*`. Alamat & edit profil/reset password masih ditautkan ke halaman PHP (di luar cakupan). |
+| **4b** | Keranjang (halaman + update/remove) | 🟠 tinggi | `SELESAI (halaman React)` | 2026-10-06 | 2026-10-06 | `/shopping-cart` jadi React di toko utama + kanal, update/remove + badge real-time + estimasi ongkir (CSRF ketat). Smoke via curl lulus; varian/required attribute belum (lihat Gate-5). |
+| **5** | Checkout + payment (modul existing) | 🔴 tertinggi | `AKTIF` | 2026-10-07 | — | flow lengkap + mapping modul pembayaran existing (cod, offline, multisafepay, paypal, stripe, sagepay) |
 
 **Aturan:** Hanya satu batch boleh `AKTIF` pada satu waktu.
 
@@ -116,10 +116,11 @@ konfigurasi currency di admin / tabel kurs, **bukan** sisi klien. Perlu keputusa
 
 ### GATE-4 (Batch 3 — akun)
 
-- [ ] Session PHP tetap berlaku (same-origin)
-- [ ] Riwayat pesanan hanya milik user
-- [ ] CSRF pada POST
-- [ ] Redirect login benar
+- [x] Session PHP tetap berlaku (same-origin) — login/register/logout lewat `api/account/*` memakai session yang sama; `api/account/session` membaca status login
+- [x] Riwayat pesanan hanya milik user — `actionOrders` memfilter `customers_id` dari session, bukan input klien; guest → `401`
+- [x] CSRF pada POST — token dari `GET /api/account/csrf`, validasi Yii tetap aktif
+- [x] Redirect login benar — guest overview/orders → `401` + `redirect.login`; sukses → `redirect.account`; logout → `redirect.home`
+- [x] Konstanta bahasa form dimuat di konteks API — `Translation::init('checkout/login','account/create','account/login')`; sebelumnya login gagal memicu `Undefined constant ...TEXT_LOGIN_ERROR` (500), kini `ok=false` + `field_errors`
 
 ### GATE-5 (Batch 4 — keranjang)
 
@@ -132,19 +133,19 @@ Bagian yang sudah selesai (4a, add only):
 - [x] Tombol "Tambah ke keranjang" dan "Beli sekarang" di halaman detail React
 - [x] Tidak ada regresi Batch 1-3: smoke `100/100`
 
-Belum dikerjakan (4b):
+Selesai 4b (2026-10-06, diverifikasi smoke via curl):
 
-- [ ] Update qty dan remove di halaman `/shopping-cart`
-- [ ] Badge header real-time
-- [ ] Estimasi ongkir berfungsi
-- [ ] Atribut/varian untuk produk yang punya required attribute
-- [ ] Tidak duplikasi item saat qty ditambah berkali-kali
+- [x] Update qty dan remove di halaman `/shopping-cart` — `POST /api/cart/update` (uprid + qty) dan `POST /api/cart/remove` (uprid); terverifikasi count 2→1→5→0
+- [x] Badge header real-time — `CartContext` + `useCart().refresh()`; CTA detail memanggil refresh sebelum navigasi
+- [x] Estimasi ongkir berfungsi — `GET/POST /api/cart/estimate` membungkus `OrderManager`; guest: country+post_code, login: sendto; POST `estimate[shipping]` memilih metode; `totals`/`shipping_quotes`/`selected` dari server
+- [x] Tidak duplikasi item saat qty ditambah berkali-kali — `add_cart` core memanggil `update_quantity` (set qty, bukan tambah), baris tetap satu (uprid=61: 2→1→5); konsisten dengan theme PHP
+- [ ] Atribut/varian untuk produk yang punya required attribute — belum dikerjakan
 
-### GATE-6 (Batch 5 — checkout + Midtrans)
+### GATE-6 (Batch 5 — checkout + payment)
 
 - [ ] Urutan checkout sama dengan `CheckoutController`
-- [ ] Modul `ext/modules/payment/midtrans/` lengkap
-- [ ] Callback Midtrans terverifikasi
+- [ ] Mapping modul payment existing (cod, offline, multisafepay, paypal_partner, stripe_checkout, sage_pay_server)
+- [ ] Callback payment terverifikasi
 - [ ] Transaksi sandbox sukses
 - [ ] Transaksi produksi OK (1x) — **hanya setelah gate lengkap**
 

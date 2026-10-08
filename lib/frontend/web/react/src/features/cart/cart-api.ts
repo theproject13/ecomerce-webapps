@@ -32,6 +32,46 @@ type CsrfPayload = {
   csrfToken: string
 }
 
+export type EstimateAddress = {
+  address_book_id: number
+  label: string
+}
+
+export type EstimateMethod = {
+  code: string
+  title: string
+  cost_f: string
+  no_cost: boolean
+  selected: boolean
+}
+
+export type EstimateQuote = {
+  module: string
+  methods: EstimateMethod[]
+}
+
+export type EstimateTotal = {
+  code: string
+  title: string
+  text: string
+}
+
+export type EstimatePayload = {
+  ok: boolean
+  is_logged_customer: boolean
+  estimate: { country_id: number; postcode: string } | null
+  countries: { countries_id: number; countries_name: string }[]
+  addresses: EstimateAddress[]
+  addresses_selected_value: number
+  cart_weight: string
+  weight_unit: string
+  shipping_quotes: EstimateQuote[]
+  selected: string | null
+  totals: EstimateTotal[]
+  currency: string
+  error: string | null
+}
+
 /**
  * Client keranjang untuk storefront React.
  *
@@ -91,14 +131,17 @@ async function csrfToken(): Promise<string> {
 }
 
 /**
- * Kirim satu POST form-urlencoded ke endpoint cart dan balas sebagai CartPayload.
+ * Kirim satu POST form-urlencoded ke endpoint cart dan balas sebagai payload.
  *
  * Sceleton.php memutar token setiap kali POST-nya lolos validasi
  * (getCsrfToken(true)), jadi token yang diambil sebelum POST lalu dipakai lagi
  * akan ditolak. Karena itu 400 dicoba satu kali lagi dengan token baru: itu
  * bentuk token yang sudah basi, bukan kegagalan add cart.
  */
-async function post(path: string, fields: Record<string, string>): Promise<CartPayload> {
+async function post<T extends { ok: boolean; error?: string | null }>(
+  path: string,
+  fields: Record<string, string>,
+): Promise<T> {
   const send = async (token: string) => {
     const form = new URLSearchParams()
     for (const [name, value] of Object.entries(fields)) {
@@ -127,7 +170,7 @@ async function post(path: string, fields: Record<string, string>): Promise<CartP
     response = await send(await csrfToken())
   }
 
-  const payload = parseJson(await response.text()) as CartPayload | null
+  const payload = parseJson(await response.text()) as T | null
 
   if (!payload) {
     throw new ApiError(
@@ -143,16 +186,11 @@ async function post(path: string, fields: Record<string, string>): Promise<CartP
   return payload
 }
 
-/**
- * Isi keranjang untuk halaman React.
- *
- * Dipakai juga untuk refresh badge di header, jadi harus cukup ringan: server
- * sudah mengembalikan hanya baris yang perlu ditampilkan.
- */
-export async function fetchCart(): Promise<CartPayload> {
+/** GET JSON ke endpoint cart, bentuk yang sama untuk fetchCart dan estiamasi. */
+async function get<T>(path: string): Promise<T> {
   let response: Response
   try {
-    response = await fetch(apiUrl('/cart/index'), {
+    response = await fetch(apiUrl(path), {
       method: 'GET',
       headers: { Accept: 'application/json' },
       credentials: 'same-origin',
@@ -161,7 +199,7 @@ export async function fetchCart(): Promise<CartPayload> {
     throw new ApiError('Tidak dapat terhubung ke server.', 0)
   }
 
-  const payload = parseJson(await response.text()) as CartPayload | null
+  const payload = parseJson(await response.text()) as (T & { error?: string | null }) | null
 
   if (!payload || !response.ok) {
     throw new ApiError(
@@ -174,13 +212,40 @@ export async function fetchCart(): Promise<CartPayload> {
 }
 
 /**
+ * Isi keranjang untuk halaman React.
+ *
+ * Dipakai juga untuk refresh badge di header, jadi harus cukup ringan: server
+ * sudah mengembalikan hanya baris yang perlu ditampilkan.
+ */
+export async function fetchCart(): Promise<CartPayload> {
+  return get<CartPayload>('/cart/index')
+}
+
+/**
+ * Estimasi ongkir untuk halaman keranjang.
+ *
+ * GET mengembalikan keadaan estimator saat ini (negara tersimpan, kuotasi
+ * ongkir, total). POST mengubah negara/alamat/metode lalu menghitung ulang di
+ * server; perhitungan ongkir dan total tidak pernah dilakukan di browser.
+ */
+export async function fetchEstimate(): Promise<EstimatePayload> {
+  return get<EstimatePayload>('/cart/estimate')
+}
+
+export async function postEstimate(
+  fields: Record<string, string>,
+): Promise<EstimatePayload> {
+  return post<EstimatePayload>('/cart/estimate', fields)
+}
+
+/**
  * Tambah produk ke keranjang.
  *
  * Kirim form-urlencoded, bukan JSON, supaya Yii membaca products_id dan
  * atribut lewat getBodyParam() persis seperti form dari tema PHP.
  */
 export function addToCart(productsId: number, qty: number): Promise<CartPayload> {
-  return post('/cart/add', { products_id: String(productsId), qty: String(qty) })
+  return post<CartPayload>('/cart/add', { products_id: String(productsId), qty: String(qty) })
 }
 
 /**
@@ -190,10 +255,10 @@ export function addToCart(productsId: number, qty: number): Promise<CartPayload>
  * kalau atribut bedakan, dan server perlu tahu baris mana yang diubah.
  */
 export function updateCartLine(uprid: string, qty: number): Promise<CartPayload> {
-  return post('/cart/update', { uprid, qty: String(qty) })
+  return post<CartPayload>('/cart/update', { uprid, qty: String(qty) })
 }
 
 /** Hapus satu baris, dengan alasan yang sama seperti updateCartLine(). */
 export function removeCartLine(uprid: string): Promise<CartPayload> {
-  return post('/cart/remove', { uprid })
+  return post<CartPayload>('/cart/remove', { uprid })
 }

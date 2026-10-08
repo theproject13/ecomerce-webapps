@@ -535,3 +535,143 @@
     transform: none;
   }
 }
+
+/* =========================================================
+   TAMBAHAN BATCH 3 (akun): dipakai LoginPage dan RegisterPage.
+   ========================================================= */
+
+/* --- banner pesan form --- */
+.tp-auth__banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.tp-auth__banner--error {
+  background: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #f5c6c4;
+}
+
+.tp-auth__banner--success {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
+/* --- baris dua kolom untuk nama depan/belakang --- */
+.tp-auth__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* --- captcha: input + gambar + tombol ganti --- */
+.tp-auth__captcha {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.tp-auth__captcha .tp-auth__field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tp-auth__captcha-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 22px;
+}
+
+.tp-auth__captcha-img {
+  height: 44px;
+  width: 120px;
+  object-fit: cover;
+  border: 1.5px solid var(--tp-border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.tp-auth__captcha-refresh {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--tp-green);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tp-auth__captcha-refresh:hover {
+  text-decoration: underline;
+}
+
+/* Input captcha tidak punya ikon, jadi padding kiri dikembalikan. */
+.tp-auth__input--plain {
+  padding-left: 16px;
+}
+
+/* --- baris bantuan di bawah form --- */
+.tp-auth__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -6px 0 16px;
+  font-size: 12px;
+}
+
+.tp-auth__meta a {
+  color: var(--tp-green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tp-auth__meta a:hover {
+  text-decoration: underline;
+}
+
+.tp-auth__meta label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tp-text-secondary);
+  cursor: pointer;
+}
+
+.tp-auth__meta input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--tp-green);
+  cursor: pointer;
+}
+
+/* --- grid aksi akun --- */
+.tp-auth__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tp-auth__actions .tp-auth__submit {
+  width: auto;
+}
+
+.tp-auth__submit--ghost {
+  background: #fff;
+  color: var(--tp-text);
+  border: 1.5px solid var(--tp-border);
+}
+
+.tp-auth__submit--ghost:hover:not(:disabled) {
+  background: #f7f7f7;
+  box-shadow: none;
+  transform: none;
+}

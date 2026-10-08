@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { addToCart } from '../../features/cart/cart-api'
+import { useCart } from '../../features/cart/useCart'
+import { useToast } from '../ui/Toast'
 import type { ProductStock } from '../../types/api'
 
 type Props = {
@@ -21,12 +23,15 @@ type Pending = 'cart' | 'checkout' | null
  * Kedua tombol memanggil endpoint yang sama; yang berbeda hanya tujuan setelah
  * berhasil: "Tambah ke keranjang" ke halaman keranjang, "Beli sekarang" ke
  * checkout. Navigasi dimuat ulang supaya PHP menghitung ulang harga, pajak,
- * dan badge keranjang dari session yang sama.
+ * dan badge keranjang dari session yang sama; sebelum pindah, konteks cart
+ * ikut di-refresh supaya badge header langsung memperbarui jumlahnya.
  */
 export function ProductPurchaseActions({ productsId, stock }: Props) {
   const [qty, setQty] = useState(1)
   const [pending, setPending] = useState<Pending>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const { refresh } = useCart()
+  const { showToast } = useToast()
 
   if (!stock.can_add_to_cart) {
     return null
@@ -48,6 +53,14 @@ export function ProductPurchaseActions({ productsId, stock }: Props) {
 
     try {
       const payload = await addToCart(productsId, qty)
+      // Badge header langsung ikut naik sebelum navigasi dimulai. Kalau
+      // navigasi karena suatu hal tidak terjadi, keranjang React tetap
+      // menampilkan angka yang benar.
+      refresh()
+      showToast(
+        target === 'checkout' ? 'Lanjut ke checkout...' : 'Produk ditambahkan ke keranjang.',
+        'success',
+      )
       window.location.assign(
         target === 'checkout' ? payload.redirect.checkout : payload.redirect.cart,
       )

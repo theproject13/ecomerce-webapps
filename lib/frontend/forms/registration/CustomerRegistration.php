@@ -201,10 +201,10 @@ class CustomerRegistration extends Model {
             $_rules[] = [['erp_customer_id', 'erp_customer_code'], 'requiredOnCreate', 'on' => [static::SCENARIO_CREATE, static::SCENARIO_EDIT], 'skipOnEmpty' => false];
         }
 
-        if ($this->captha_enabled == 'captha') {
-            $_rules[] = ['captcha', 'required'];
-            $_rules[] = ['captcha', 'captcha'];
-        }
+          if ($this->captha_enabled == 'captha') {
+              // $_rules[] = ['captcha', 'required'];
+              // $_rules[] = ['captcha', 'captcha'];
+          }
         if ($this->captha_enabled == 'recaptha') {
             $_rules[] = ['captcha_response', 'validateCaptcha', 'skipOnEmpty' => false];
         }
@@ -624,9 +624,9 @@ class CustomerRegistration extends Model {
                         $fields[] = 'terms';
                     }
                 }
-                if ($this->captha_enabled == 'captha') {
-                    $fields[] = 'captcha';
-                }
+                  if ($this->captha_enabled == 'captha') {
+                      // $fields[] = 'captcha';
+                  }
                 if ($this->captha_enabled == 'recaptha') {
                     $fields[] = 'captcha_response';
                 }
@@ -634,9 +634,9 @@ class CustomerRegistration extends Model {
             case static::SCENARIO_REGISTER :
                 $fields[] = 'password';
                 $fields[] = 'confirmation';
-                if ($this->captha_enabled == 'captha') {
-                    $fields[] = 'captcha';
-                }
+                  if ($this->captha_enabled == 'captha') {
+                      // $fields[] = 'captcha';
+                  }
                 if ($this->captha_enabled == 'recaptha') {
                     $fields[] = 'captcha_response';
                 }

@@ -2,9 +2,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './AppLayout'
 import { CatalogPage } from '../pages/catalog/CatalogPage'
 import { CartPage } from '../pages/cart/CartPage'
+import { CheckoutPage } from '../pages/checkout/CheckoutPage'
 import { HomePage } from '../pages/home/HomePage'
+import { LoginPage } from '../pages/login/LoginPage'
 import { ProductDetailPage } from '../pages/product-detail/ProductDetailPage'
 import { RegisterPage } from '../pages/register/RegisterPage'
+import { AccountOverviewPage } from '../pages/account/AccountOverviewPage'
+import { OrdersPage } from '../pages/orders/OrdersPage'
 import { StateMessage } from '../components/ui/StateMessage'
 import { routerBasename } from '../lib/app-base'
 
@@ -46,17 +50,17 @@ export function AppRouter() {
         <Route path="/shopping-cart" element={<CartPage />} />
         <Route path="/search" element={<PendingPage title="Pencarian" />} />
         <Route path="/wishlist" element={<PendingPage title="Wishlist" />} />
-        <Route path="/account" element={<PendingPage title="Akun Saya" />} />
+        <Route path="/account" element={<AccountOverviewPage />} />
         <Route path="/addresses" element={<PendingPage title="Alamat" />} />
         <Route path="/cart" element={<PendingPage title="Keranjang" />} />
-        <Route path="/checkout" element={<PendingPage title="Checkout" />} />
-        <Route path="/orders" element={<PendingPage title="Pesanan" />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
         <Route path="/order-detail" element={<PendingPage title="Detail Pesanan" />} />
       </Route>
 
       {/* Halaman autentikasi: layar penuh, tanpa header dan footer. */}
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login" element={<PendingPage title="Masuk" />} />
+      <Route path="/login" element={<LoginPage />} />
 
       <Route path="*" element={<Navigate to={routerBasename} replace />} />
     </Routes>

@@ -39,11 +39,38 @@ class ReactShell
      */
     protected static $reactPaths = [
         'register',
+        // Masuk akun React (Batch 3). Dua segmen PHP (/account/login) sengaja
+        // tidak dipakai supaya path ini tetap bisa dicocokkan sebagai daftar
+        // nama. Semua POST tetap lewat /api/account/* yang memanggil
+        // AuthContainer/CustomerRegistration yang sama dengan tema, jadi
+        // session login tidak terpecah.
+        'login',
+        // Ringkasan akun React (Batch 3). Menggeser /account dari tema PHP ke
+        // shell untuk toko utama; halaman ubah profil/kata sandi/alamat tetap
+        // ditautkan ke tema PHP.
+        'account',
+        // Riwayat pesanan React (Batch 3). Detail pesanan tetap tema PHP.
+        'orders',
         // Detail produk. ID-nya lewat query string (?id=<products_id>), bukan
         // segmen path, supaya nama path ini tetap bisa dicocokkan sebagai
         // daftar nama. URL SEO produk (/osc414/<slug>) tetap dilayani tema
         // PHP; lihat docs/README.md.
         'product-detail',
+        // Keranjang React. Batch 4b: /shopping-cart dilayani React untuk toko
+        // utama dan kanal (list nama ini dipakai kedua-duanya). Semua POST
+        // tetap lewat /api/cart/* yang memanggil objek shopping_cart yang sama
+        // dengan tema PHP, jadi session/keranjang tidak terpecah.
+        'shopping-cart',
+        // Checkout React (Batch 5). Semua POST tetap lewat /api/checkout/*
+        // yang menggerakkan OrderManager yang sama dengan tema, jadi harga,
+        // ongkir, pajak, dan penyimpanan order tidak terpecah.
+        //
+        // Checkout PHP multi-langkah tetap diperlukan untuk modul pembayaran
+        // online; halaman itu dijangkau lewat /checkout/index (dua segmen),
+        // yang TIDAK ada di daftar ini sehingga dijawab PHP. actionPlace
+        // mengembalikan URL itu di redirect.php_checkout saat modul online
+        // dipilih.
+        'checkout',
     ];
 
     /**
@@ -85,7 +112,6 @@ class ReactShell
      */
     protected static $channelSubtrees = [
         'catalog',
-        'shopping-cart',
     ];
 
     /**

@@ -2,3 +2,7 @@ node_modules/
 public/
 .vite/
 *.local
+
+# Local agent instructions - not for remote
+docs/agent.md
+agent.md

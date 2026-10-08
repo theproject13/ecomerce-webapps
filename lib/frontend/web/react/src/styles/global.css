@@ -60,6 +60,20 @@ h4 {
   line-height: 1.3;
 }
 
+/* Wrapper halaman (akun, keranjang, checkout, orders). Gutter sama dengan
+   header dan home supaya tepi kiri/kanan jatuh di garis yang sama. */
+.container {
+  max-width: var(--tp-container);
+  margin: 0 auto;
+  padding-left: var(--tp-gutter);
+  padding-right: var(--tp-gutter);
+}
+
+.section {
+  padding-top: 12px;
+  padding-bottom: 24px;
+}
+
 .surface {
   background: var(--tp-white);
   border-radius: var(--tp-radius);

@@ -28,3 +28,6 @@
 /vendor/
 .ds_store
 Thumbs.db
+# Local agent instructions - not for remote
+agent.md
+**/docs/agent.md

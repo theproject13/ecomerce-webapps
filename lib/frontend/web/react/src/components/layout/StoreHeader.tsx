@@ -102,9 +102,9 @@ export function StoreHeader({ storeName, cartCount, channels, session }: StoreHe
             </button>
 
             {isLoggedIn ? (
-              <a
+              <Link
                 className="tp-header__icon tp-header__icon--profile"
-                href={routeUrl(routes.accountOverview)}
+                to="/account"
                 title={session.display_name ? `Profil ${session.display_name}` : 'Profil saya'}
               >
                 {session.initial ? (
@@ -117,12 +117,12 @@ export function StoreHeader({ storeName, cartCount, channels, session }: StoreHe
                 <span className="visually-hidden">
                   {session.display_name ? `Profil ${session.display_name}` : 'Profil saya'}
                 </span>
-              </a>
+              </Link>
             ) : (
               <div className="tp-header__auth">
-                <a className="tp-header__auth-btn" href={routeUrl(routes.login)}>
+                <Link className="tp-header__auth-btn" to="/login">
                   Masuk
-                </a>
+                </Link>
                 <Link className="tp-header__auth-btn tp-header__auth-btn--solid" to="/register">
                   Daftar
                 </Link>

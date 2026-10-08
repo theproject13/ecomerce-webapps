@@ -1,0 +1,229 @@
+/* =========================================================
+   HALAMAN AKUN (Batch 3)
+   Profil + daftar pesanan. Memakai container/surface global,
+   hanya elemen akun yang diatur di sini.
+   ========================================================= */
+
+.account-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tp-text, #222);
+  margin: 0;
+}
+
+/* --- kartu profil --- */
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--tp-border, #e6e6e6);
+  border-radius: 12px;
+}
+
+.account-profile__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--tp-green, #43b550);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.account-profile__meta {
+  min-width: 0;
+}
+
+.account-profile__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tp-text, #222);
+  margin: 0 0 2px;
+}
+
+.account-profile__line {
+  font-size: 13px;
+  color: var(--tp-text-secondary, #666);
+  margin: 0;
+  word-break: break-word;
+}
+
+/* --- grid pintasan --- */
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.account-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--tp-border, #e6e6e6);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--tp-text, #222);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.account-tile:hover {
+  border-color: var(--tp-green, #43b550);
+  box-shadow: 0 4px 14px rgba(66, 181, 73, 0.12);
+}
+
+.account-tile__label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.account-tile__desc {
+  font-size: 12px;
+  color: var(--tp-text-secondary, #666);
+}
+
+.account-tile--button {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+/* --- pesanan --- */
+.account-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--tp-border, #e6e6e6);
+  border-radius: 12px;
+}
+
+.account-order__main {
+  min-width: 0;
+}
+
+.account-order__id {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tp-text, #222);
+  margin: 0 0 2px;
+}
+
+.account-order__sub {
+  font-size: 12px;
+  color: var(--tp-text-secondary, #666);
+  margin: 0;
+}
+
+.account-order__side {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-order__total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tp-green-dark, #2f8f3b);
+  white-space: nowrap;
+}
+
+.account-order__status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eef6ef;
+  color: var(--tp-green-dark, #2f8f3b);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.account-order__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tp-green, #43b550);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.account-order__link:hover {
+  text-decoration: underline;
+}
+
+/* --- aksi --- */
+.account-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1.5px solid var(--tp-border, #e6e6e6);
+  background: #fff;
+  color: var(--tp-text, #222);
+}
+
+.account-btn--solid {
+  background: var(--tp-green, #43b550);
+  border-color: var(--tp-green, #43b550);
+  color: #fff;
+}
+
+.account-btn--solid:hover:not(:disabled) {
+  background: var(--tp-green-dark, #2f8f3b);
+}
+
+.account-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.account-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--tp-text-secondary, #666);
+  font-size: 14px;
+}
+
+@media (max-width: 560px) {
+  .account-order {
+    align-items: flex-start;
+  }
+
+  .account-order__side {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

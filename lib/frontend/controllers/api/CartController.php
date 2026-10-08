@@ -3,13 +3,17 @@
 namespace frontend\controllers\api;
 
 use app\components\CartFactory;
+use common\helpers\Address;
 use common\helpers\Attributes;
+use common\helpers\Customer as CustomerHelper;
 use common\helpers\Product as ProductHelper;
 use common\helpers\Inventory;
 use common\helpers\Currencies;
+use common\helpers\PlatformConfig;
 use common\classes\StockIndication;
 use common\classes\Images;
 use common\classes\platform;
+use common\services\OrderManager;
 use Yii;
 
 /**
@@ -43,6 +47,11 @@ class CartController extends BaseApiController
      */
     public function actionIndex()
     {
+        $blocked = $this->cartBlocked();
+        if ($blocked !== null) {
+            return $blocked;
+        }
+
         return $this->payload();
     }
 
@@ -210,6 +219,231 @@ class CartController extends BaseApiController
         $payload = $this->payload();
         $payload['ok'] = true;
         $payload['removed'] = ['uprid' => $uprid];
+
+        return $payload;
+    }
+
+    /**
+     * GET/POST /api/cart/estimate
+     *
+     * Estimasi ongkir + ringkasan total untuk halaman keranjang React.
+     *
+     * GET mengembalikan keadaan saat ini (negara tersimpan, kuotasi ongkir,
+     * total). POST menerima field `estimate[country_id]` + `estimate[post_code]`
+     * untuk pengunjung, `estimate[sendto]` untuk pelanggan yang punya alamat,
+     * dan/atau `estimate[shipping]` untuk memilih metode; lalu menghitung ulang.
+     *
+     * Logika yang dijalankan sama persis dengan alur kartu PHP:
+     * ShoppingCartController::actionEstimate() + widget ShippingEstimator/
+     * OrderTotal memakai OrderManager, jadi harga ongkir dan total tidak
+     * dihitung di browser. Endpoint ini menyalin urutan pemanggilan itu, tanpa
+     * merender HTML.
+     */
+    public function actionEstimate()
+    {
+        global $cart;
+
+        $blocked = $this->cartBlocked();
+        if ($blocked !== null) {
+            return $blocked;
+        }
+
+        if ($this->cart()->count_contents() === 0) {
+            $payload = $this->payload();
+            $payload['error'] = 'Keranjang kosong, tidak ada ongkir untuk dihitung.';
+
+            return $payload;
+        }
+
+        $manager = $this->estimateManager();
+
+        if (Yii::$app->request->isPost) {
+            $post = Yii::$app->request->post('estimate');
+            if (!is_array($post)) {
+                $post = [];
+            }
+
+            if (isset($post['country_id'])) {
+                $post['country_id'] = (int)$post['country_id'];
+            }
+
+            if ($manager->isCustomerAssigned()) {
+                if (!empty($post['sendto'])) {
+                    $manager->changeCustomerAddressSelection('shipping', $post['sendto']);
+                    $manager->resetDeliveryAddress();
+                    $manager->changeCustomerAddressSelection('billing', $post['sendto']);
+                    $manager->resetBillingAddress();
+                    $manager->set('shipping', false);
+                }
+            } elseif (!empty($post['country_id'])) {
+                Yii::$app->storage->set('customer_country_id', $post['country_id']);
+                $estimateUpdate = ['country_id' => $post['country_id'], 'postcode' => (string)($post['post_code'] ?? '')];
+                if ($manager->has('estimate_ship')) {
+                    $estimate = (array)$manager->get('estimate_ship');
+                    if ((int)($estimate['country_id'] ?? 0) !== $post['country_id']) {
+                        $manager->set('estimate_ship', $estimateUpdate);
+                        $manager->resetDeliveryAddress();
+                        $manager->set('estimate_bill', $estimateUpdate);
+                        $manager->resetBillingAddress();
+                        $post['shipping'] = null;
+                        $manager->set('shipping', false);
+                    }
+                } else {
+                    $manager->set('estimate_ship', $estimateUpdate);
+                    $manager->resetDeliveryAddress();
+                    $manager->set('estimate_bill', $estimateUpdate);
+                    $manager->resetBillingAddress();
+                }
+            }
+
+            if (!empty($post['shipping'])) {
+                $manager->setSelectedShipping($post['shipping']);
+            }
+        }
+
+        return $this->estimatePayload($manager);
+    }
+
+    /**
+     * OrderManager untuk perhitungan ongkir/total, dikonfigurasi sama seperti
+     * ShoppingCartController::actionIndex (modulesVisibility + combineShippings).
+     */
+    private function estimateManager()
+    {
+        global $cart;
+
+        $manager = new OrderManager(Yii::$app->get('storage'));
+        $manager->setModulesVisibility(['shop_order']);
+        Yii::configure($manager, ['combineShippings' => true]);
+
+        $current = $this->cart();
+        $cart = $current;
+        $manager->loadCart($cart);
+        $manager->createOrderInstance('\common\classes\Order');
+
+        return $manager;
+    }
+
+    /** Bentuk JSON dari OrderManager: negara, alamat, kuotasi, total. */
+    private function estimatePayload(OrderManager $manager)
+    {
+        $estimateData = $manager->prepareEstimateData();
+
+        $quotes = [];
+        foreach ($manager->getShippingQuotesByChoice() as $quote) {
+            if (isset($quote['error']) && !empty($quote['error'])) {
+                continue;
+            }
+
+            $methods = [];
+            foreach (($quote['methods'] ?? []) as $method) {
+                $methods[] = [
+                    'code' => (string)($method['code'] ?? ''),
+                    'title' => (string)($method['title'] ?? ''),
+                    'cost_f' => (string)($method['cost_f'] ?? ''),
+                    'no_cost' => (bool)($method['no_cost'] ?? false),
+                    'selected' => (bool)($method['selected'] ?? false),
+                ];
+            }
+
+            $quotes[] = [
+                'module' => (string)($quote['module'] ?? ''),
+                'methods' => $methods,
+            ];
+        }
+
+        $addresses = [];
+        if (!empty($estimateData['is_logged_customer'])) {
+            foreach (($estimateData['addresses'] ?? []) as $address) {
+                $formatId = $address['country']['address_format_id'] ?? null;
+                $addresses[] = [
+                    'address_book_id' => (int)($address['address_book_id'] ?? 0),
+                    'label' => (string)Address::address_format(
+                        $formatId,
+                        $address,
+                        0,
+                        ' ',
+                        ' ',
+                        true
+                    ),
+                ];
+            }
+        }
+
+        $totals = [];
+        foreach ($manager->getTotalOutput(true, 'TEXT_SHOPPING_CART') as $row) {
+            $totals[] = [
+                'code' => (string)($row['code'] ?? ''),
+                'title' => (string)($row['title'] ?? ''),
+                'text' => (string)($row['text'] ?? ''),
+            ];
+        }
+
+        $currencies = \Yii::$container->get('currencies');
+
+        return [
+            'ok' => true,
+            'is_logged_customer' => (bool)($estimateData['is_logged_customer'] ?? false),
+            'estimate' => $estimateData['estimate'] ?? null,
+            'countries' => $estimateData['countries'] ?? [],
+            'addresses' => $addresses,
+            'addresses_selected_value' => (int)($estimateData['addresses_selected_value'] ?? 0),
+            'cart_weight' => (string)($estimateData['cart_weight'] ?? ''),
+            'weight_unit' => defined('TEXT_WEIGHT_UNIT_KG') ? TEXT_WEIGHT_UNIT_KG : '',
+            'shipping_quotes' => $quotes,
+            'selected' => $manager->getSelectedShipping(),
+            'totals' => $totals,
+            'currency' => (string)Currencies::systemCurrencyCode(),
+            'error' => null,
+        ];
+    }
+
+    /**
+     * Penjaga yang setara dengan guard di ShoppingCartController::actionIndex,
+     * supaya halaman keranjang React tidak melewati aturan toko yang sama.
+     *
+     * add/update/remove tidak diguard di sini untuk tetap paritas dengan tema
+     * PHP, yang mengizinkan CartFactory menambah item bahkan saat halaman
+     * keranjang dilarang.
+     */
+    private function cartBlocked()
+    {
+        if (GROUPS_DISABLE_CART) {
+            return $this->guardError('Keranjang tidak tersedia untuk akun ini.', 'home');
+        }
+
+        if (
+            Yii::$app->user->isGuest
+            && PlatformConfig::getFieldValue('platform_please_login')
+        ) {
+            return $this->guardError('Silakan masuk dulu untuk melihat keranjang.', 'login');
+        }
+
+        $customerGroupsId = (int)Yii::$app->storage->get('customer_groups_id');
+        if (CustomerHelper::check_customer_groups($customerGroupsId, 'cart_for_logged_only')) {
+            return $this->guardError('Silakan masuk dulu untuk melihat keranjang.', 'login');
+        }
+
+        return null;
+    }
+
+    /** Bentuk jawaban saat cart diblokir: error + target redirect. */
+    private function guardError($message, $target)
+    {
+        $payload = $this->payload();
+        $payload['error'] = $message;
+
+        if ($target === 'login') {
+            $payload['redirect']['login'] = rtrim(
+                (string)Yii::$app->urlManager->createUrl(['account/login']),
+                '/'
+            );
+        } else {
+            $payload['redirect']['home'] = rtrim(
+                (string)Yii::$app->urlManager->createUrl(['/']),
+                '/'
+            );
+        }
 
         return $payload;
     }

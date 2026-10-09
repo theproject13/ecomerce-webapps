@@ -103,11 +103,7 @@ export function ProductCard({ product, variant = 'grid' }: Props) {
           </div>
 
           {product.seller ? (
-            <a
-              className="tp-card__seller"
-              href={product.seller.url ? catalogUrl(product.seller.url) : href}
-              onClick={(event) => event.stopPropagation()}
-            >
+            <span className="tp-card__seller">
               <StoreLogo className="tp-card__seller-logo" />
               <span className="tp-card__seller-name">{truncate(product.seller.name, 22)}</span>
               {product.seller.verified ? (
@@ -115,7 +111,7 @@ export function ProductCard({ product, variant = 'grid' }: Props) {
                   <ChevronRightIcon />
                 </span>
               ) : null}
-            </a>
+            </span>
           ) : null}
         </div>
       </a>

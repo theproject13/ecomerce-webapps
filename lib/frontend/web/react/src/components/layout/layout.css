@@ -18,6 +18,78 @@
   padding: 10px var(--tp-gutter) 8px;
 }
 
+/* --- bilah utilitas di atas baris logo --- */
+.tp-header__utility {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.tp-header__utility-inner {
+  max-width: var(--tp-container);
+  margin: 0 auto;
+  padding: 6px var(--tp-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.tp-header__utility-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.tp-header__utility-links a {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.tp-header__utility-links a:hover,
+.tp-header__utility-links a:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.tp-header__lang {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tp-header__lang-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.tp-header__lang-select {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.tp-header__lang-select:focus {
+  outline: none;
+}
+
+.tp-header__lang-select option {
+  color: #333;
+}
+
 .tp-header__top {
   display: flex;
   align-items: center;
@@ -342,6 +414,15 @@
     padding: 12px var(--tp-gutter) 10px;
   }
 
+  .tp-header__utility-inner {
+    padding: 7px var(--tp-gutter);
+  }
+
+  .tp-header__utility-links a,
+  .tp-header__lang-select {
+    font-size: 12px;
+  }
+
   .tp-header__logo-mark {
     width: 34px;
     height: 34px;
@@ -414,6 +495,16 @@
  * saling dorong dan tidak membuat halaman scroll horizontal.
  */
 @media (max-width: 639px) {
+  .tp-header__utility-inner,
+  .tp-header__utility-links {
+    gap: 6px 12px;
+  }
+
+  .tp-header__utility-links a,
+  .tp-header__lang-select {
+    font-size: 10px;
+  }
+
   .tp-header__top {
     flex-wrap: wrap;
     row-gap: 8px;

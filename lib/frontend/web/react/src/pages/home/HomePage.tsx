@@ -2,6 +2,7 @@ import { CategorySections } from '../../components/home/CategorySections'
 import { ChannelEntries } from '../../components/home/ChannelEntries'
 import { FlashSale } from '../../components/home/FlashSale'
 import { HeroSlider } from '../../components/home/HeroSlider'
+import { PopularCategories } from '../../components/home/PopularCategories'
 import { PromoBanner } from '../../components/home/PromoBanner'
 import { ProductCard } from '../../components/product/ProductCard'
 import { ProductGridSkeleton } from '../../components/ui/Skeleton'
@@ -23,6 +24,8 @@ export function HomePage() {
       <HeroSlider />
 
       {loading ? null : <ChannelEntries channels={channels} />}
+
+      <PopularCategories />
 
       {loading ? null : (
         <PromoBanner channelCount={channels.length} featuredCount={meta.featured_count} />

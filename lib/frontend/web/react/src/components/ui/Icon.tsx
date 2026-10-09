@@ -281,3 +281,61 @@ export function HeadsetIcon({ className }: { className?: string }) {
     </svg>
   )
 }
+
+export function SmartphoneIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" />
+      <path d="M10.5 18.5h3" />
+    </svg>
+  )
+}
+
+export function CpuIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="7" y="7" width="10" height="10" rx="2" />
+      <path d="M10 3v2M14 3v2M10 19v2M14 19v2M3 10h2M3 14h2M19 10h2M19 14h2" />
+    </svg>
+  )
+}
+
+export function PawIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="7" cy="8" r="1.8" />
+      <circle cx="12" cy="6.2" r="1.8" />
+      <circle cx="17" cy="8" r="1.8" />
+      <path d="M8.5 15.5c0-1.9 1.6-3.2 3.5-3.2s3.5 1.3 3.5 3.2c0 1.8-1.5 3.3-3.5 3.3s-3.5-1.5-3.5-3.3Z" />
+    </svg>
+  )
+}
+
+export function WalletIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="6" width="18" height="13" rx="2.5" />
+      <path d="M3 10h18" />
+      <circle cx="16.5" cy="14.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function LaptopIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="4" y="5" width="16" height="11" rx="1.8" />
+      <path d="M2.5 19.5h19" />
+    </svg>
+  )
+}
+
+export function GlobeIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17" />
+      <path d="M12 3.5c2.2 2.4 3.3 5.2 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.2-3.3-8.5S9.8 5.9 12 3.5Z" />
+    </svg>
+  )
+}

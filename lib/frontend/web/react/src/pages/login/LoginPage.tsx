@@ -7,7 +7,7 @@ import {
   UserIcon,
 } from '../../components/ui/Icon'
 import { STORE_NAME } from '../../lib/brand'
-import { routeUrl } from '../../lib/routes'
+import { routeUrl, routes } from '../../lib/routes'
 import { login } from '../../features/account/account-api'
 import '../register/register.css'
 
@@ -66,8 +66,9 @@ export function LoginPage() {
       }
 
       // Navigasi penuh, bukan client-side, supaya shell React dimuat ulang dan
-      // header membaca session PHP yang baru (logged_in = true).
-      window.location.assign(payload.redirect.account)
+      // header membaca session PHP yang baru (logged_in = true). Tujuannya
+      // beranda React (channel saat ini), bukan halaman akun tema PHP.
+      window.location.assign(routeUrl(routes.home))
     } catch (error) {
       setBanner(error instanceof Error ? error.message : 'Masuk gagal. Coba lagi.')
     } finally {

@@ -11,6 +11,7 @@ import {
   UserIcon,
 } from '../../components/ui/Icon'
 import { STORE_NAME } from '../../lib/brand'
+import { routeUrl, routes } from '../../lib/routes'
 import { register } from '../../features/account/account-api'
 import './register.css'
 
@@ -122,8 +123,9 @@ export function RegisterPage() {
       }
 
       // Registrasi sukses langsung login di PHP. Muat ulang shell supaya
-      // header membaca session baru.
-      window.location.assign(payload.redirect.account)
+      // header membaca session baru, lalu mendarat di beranda React (channel
+      // saat ini), bukan halaman akun tema PHP.
+      window.location.assign(routeUrl(routes.home))
     } catch (error) {
       setBanner(error instanceof Error ? error.message : 'Pendaftaran gagal. Coba lagi.')
 

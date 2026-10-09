@@ -88,13 +88,11 @@ return [
         'user' => [
             'identityClass' => 'common\components\Customer',
           // remember me start
-            /*
-            'enableAutoLogin' => true,
             'class' => 'common\components\RememberMe',
+            'enableAutoLogin' => true,
             'autoLoginDuration' => 3600*24*7, // for a week
             'autoRenewCookie' => false, //don't use with current implementation
-          */
-            // remember me end
+          // remember me end
             'loginUrl'=>['/account/login'],
         ],
         'log' => [

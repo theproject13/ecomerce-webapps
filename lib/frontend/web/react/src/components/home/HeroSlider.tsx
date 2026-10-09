@@ -4,17 +4,15 @@ import { channelRouteUrl, routeUrl } from '../../lib/routes'
 import { ChevronLeftIcon, ChevronRightIcon } from '../ui/Icon'
 import './hero.css'
 
-const AUTOPLAY_MS = 4500
+const AUTOPLAY_MS = 5000
 
 /**
  * Banner slide otomatis, muncul tepat di bawah header.
  *
  * Catatan perilaku:
- * - Auto-slide berhenti saat kursor di atas banner atau saat fokus masuk ke
- *   banner, supaya orang yang lagi baca atau pakai keyboard tidak kehilangan
- *   slide.
- * - `prefers-reduced-motion` dimatikan lewat matchMedia, bukan hanya CSS,
- *   karena yang dimatikan adalah perpindahan slide-nya, bukan animasi CSS.
+ * - Auto-slide berjalan tiap 5 detik dan berhenti saat kursor di atas banner
+ *   atau saat fokus masuk ke banner, supaya orang yang lagi baca atau pakai
+ *   keyboard tidak kehilangan slide.
  * - Slide diubah hanya lewat transform, bukan height, supaya tidak bikin
  *   layout di bawahnya bergeser.
  */
@@ -29,8 +27,7 @@ export function HeroSlider() {
   }, [count])
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced || paused || count < 2) {
+    if (paused || count < 2) {
       return
     }
 

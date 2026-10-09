@@ -416,6 +416,26 @@ class StorefrontController extends BaseApiController
     }
 
     /**
+     * Harga final dan harga coret untuk satu produk featured.
+     *
+     * featuredItems() awalnya membaca kolom products_price langsung dari query,
+     * padahal kolom itu tersimpan dalam mata uang dasar (GBP). Supaya homepage
+     * konsisten dengan katalog dan detail, produk dimuat lewat container lalu
+     * dihitung dengan cardPrice() yang sama, sehingga sesi IDR ikut terpakai.
+     */
+    private function featuredPrice($productsId)
+    {
+        $products = Yii::$container->get('products');
+        $product = $products->loadProducts(['products_id' => (int)$productsId])->getProduct((int)$productsId);
+
+        if ($product === false || !isset($product['products_id'])) {
+            return ['price' => 0.0, 'list_price' => null];
+        }
+
+        return $this->cardPrice($product);
+    }
+
+    /**
      * Harga final dan harga coret untuk kartu katalog.
      *
      * Logikanya sama dengan ProductController::priceInfo(): jsonPrice adalah
@@ -672,12 +692,19 @@ class StorefrontController extends BaseApiController
                 $summary = '';
             }
 
+            // Harga featured diambil lewat jalur yang sama dengan kartu katalog
+            // (lihat cardPrice()), bukan kolom products_price mentah. Kolom itu
+            // tersimpan dalam mata uang dasar (GBP), sehingga homepage sempat
+            // menampilkan harga GBP walau sesi sudah IDR.
+            $price = $this->featuredPrice($productId);
+
             $items[] = [
                 'products_id' => $productId,
                 'name' => (string)$row['name'],
                 'summary' => $summary,
                 'model' => (string)$row['model'],
-                'price' => round((float)$row['price'], 2),
+                'price' => $price['price'],
+                'list_price' => $price['list_price'],
                 'quantity' => (int)$row['quantity'],
                 'in_stock' => ((int)$row['quantity'] > 0),
                 'image' => $this->imageUrl($row['image']),

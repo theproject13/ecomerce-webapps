@@ -317,7 +317,7 @@ class CheckoutController extends BaseApiController
             $totals[] = [
                 'code' => (string)($row['code'] ?? ''),
                 'title' => (string)($row['title'] ?? ''),
-                'text' => (string)($row['text'] ?? ''),
+                'text' => $this->totalText($row),
             ];
         }
 

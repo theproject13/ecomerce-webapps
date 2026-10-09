@@ -375,7 +375,7 @@ class CartController extends BaseApiController
             $totals[] = [
                 'code' => (string)($row['code'] ?? ''),
                 'title' => (string)($row['title'] ?? ''),
-                'text' => (string)($row['text'] ?? ''),
+                'text' => $this->totalText($row),
             ];
         }
 
@@ -473,8 +473,8 @@ class CartController extends BaseApiController
                 'name' => (string)($line['name'] ?? ''),
                 'image' => $this->thumb($productsId),
                 'qty' => $qty,
-                'price' => round((float)($line['price'] ?? 0), 2),
-                'final_price' => round((float)($line['final_price'] ?? $line['price'] ?? 0), 2),
+                'price' => $this->toRupiah($line['price'] ?? 0),
+                'final_price' => $this->toRupiah($line['final_price'] ?? $line['price'] ?? 0),
             ];
         }
 

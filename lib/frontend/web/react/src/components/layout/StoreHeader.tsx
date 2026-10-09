@@ -4,6 +4,7 @@ import {
   BellIcon,
   CartIcon,
   EnvelopeIcon,
+  GlobeIcon,
   SearchIcon,
   StoreLogo,
   UserIcon,
@@ -27,6 +28,7 @@ type StoreHeaderProps = {
  */
 export function StoreHeader({ storeName, cartCount, channels, session }: StoreHeaderProps) {
   const [keyword, setKeyword] = useState('')
+  const [language, setLanguage] = useState('id')
   const { showToast } = useToast()
   const isLoggedIn = session.logged_in
 
@@ -44,6 +46,30 @@ export function StoreHeader({ storeName, cartCount, channels, session }: StoreHe
 
   return (
     <header className="tp-header">
+      <div className="tp-header__utility">
+        <div className="tp-header__utility-inner">
+          <nav className="tp-header__utility-links" aria-label="Tautan bantuan">
+            <a href={routeUrl(routes.contact)}>Tentang {storeName}</a>
+            <a href={routeUrl(routes.contact)}>Mulai Berjualan</a>
+            <a href={routeUrl(routes.featured)}>Promo</a>
+            <a href={routeUrl(routes.contact)}>{storeName} Care</a>
+          </nav>
+
+          <label className="tp-header__lang">
+            <GlobeIcon className="tp-header__lang-icon" />
+            <select
+              className="tp-header__lang-select"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+              aria-label="Pilih bahasa"
+            >
+              <option value="id">Indonesia</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
       <div className="tp-header__inner">
         <div className="tp-header__top">
           <a className="tp-header__logo" href={routeUrl(routes.home)} aria-label={storeName}>

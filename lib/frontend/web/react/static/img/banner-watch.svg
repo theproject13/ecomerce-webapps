@@ -12,6 +12,6 @@
   <circle cx="120" cy="350" r="90" fill="#ffffff" opacity="0.05"/>
   <g fill="#ffffff" font-family="Plus Jakarta Sans, Segoe UI, Arial, sans-serif">
     <text x="80" y="185" font-size="62" font-weight="800" letter-spacing="-1">WATCH</text>
-    <text x="80" y="232" font-size="26" font-weight="500" opacity="0.9">Jam tangan original & aksesori</text>
+    <text x="80" y="232" font-size="26" font-weight="500" opacity="0.9">Jam tangan original &amp; aksesori</text>
   </g>
 </svg>

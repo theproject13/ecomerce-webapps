@@ -7,7 +7,7 @@ import { HomePage } from '../pages/home/HomePage'
 import { LoginPage } from '../pages/login/LoginPage'
 import { ProductDetailPage } from '../pages/product-detail/ProductDetailPage'
 import { RegisterPage } from '../pages/register/RegisterPage'
-import { AccountOverviewPage } from '../pages/account/AccountOverviewPage'
+import { AccountLayout } from '../pages/account/AccountLayout'
 import { OrdersPage } from '../pages/orders/OrdersPage'
 import { StateMessage } from '../components/ui/StateMessage'
 import { routerBasename } from '../lib/app-base'
@@ -50,11 +50,15 @@ export function AppRouter() {
         <Route path="/shopping-cart" element={<CartPage />} />
         <Route path="/search" element={<PendingPage title="Pencarian" />} />
         <Route path="/wishlist" element={<PendingPage title="Wishlist" />} />
-        <Route path="/account" element={<AccountOverviewPage />} />
         <Route path="/addresses" element={<PendingPage title="Alamat" />} />
         <Route path="/cart" element={<PendingPage title="Keranjang" />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
+
+        {/* Area akun: sidebar profil + konten (desain Daftar Transaksi). */}
+        <Route element={<AccountLayout />}>
+          <Route path="/account" element={<OrdersPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+        </Route>
         <Route path="/order-detail" element={<PendingPage title="Detail Pesanan" />} />
       </Route>
 

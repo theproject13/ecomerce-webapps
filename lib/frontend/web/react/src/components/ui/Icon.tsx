@@ -339,3 +339,101 @@ export function GlobeIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function MenuIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
+    </svg>
+  )
+}
+
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  )
+}
+
+export function CheckCircleIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.4 12.4 2.5 2.5 4.7-5.2" />
+    </svg>
+  )
+}
+
+export function ReceiptIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6 2.5h12V21l-3-1.8-3 1.8-3-1.8L6 21V2.5Z" />
+      <path d="M9.5 8h5M9.5 12h5" />
+    </svg>
+  )
+}
+
+export function LogoutIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M15 12H4" />
+      <path d="m8 8-4 4 4 4" />
+      <path d="M11 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6" />
+    </svg>
+  )
+}
+
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+export function BoxIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="m3 7 9-4 9 4-9 4-9-4Z" />
+      <path d="M3 7v10l9 4 9-4V7" />
+      <path d="M12 11v10" />
+    </svg>
+  )
+}
+
+export function CalendarIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="4.5" width="18" height="16" rx="2" />
+      <path d="M3 9h18M8 2.5v4M16 2.5v4" />
+    </svg>
+  )
+}
+
+export function CreditCardIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <path d="M2.5 9.5h19" />
+      <path d="M6 15h4" />
+    </svg>
+  )
+}
+
+export function ShoppingBagIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6 8h12l1 12H5L6 8Z" />
+      <path d="M9 8a3 3 0 0 1 6 0" />
+    </svg>
+  )
+}
+
+export function SparkleIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
+    </svg>
+  )
+}

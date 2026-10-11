@@ -1,29 +1,16 @@
 # Deployment dan Rollback
 
-## Prasyarat
+Dokumen ini khusus deployment frontend dan rollback. Prasyarat, instalasi, dan
+build ada di tempat lain agar tidak duplikat:
 
-- Apache 2.4 dengan `mod_rewrite` aktif
-- PHP 8.2
-- Node.js 20+ (terverifikasi 24.11.1) dan npm
-- Host sudah terdaftar di `C:\Windows\System32\drivers\etc\hosts`:
+- Prasyarat lingkungan: [installation.md](installation.md#1-prasyarat)
+- Build frontend: [frontend-development.md](frontend-development.md#5-typecheck-dan-build-production)
+- Peta host & isolasi admin: [architecture.md](architecture.md#peta-host)
+
+Prasyarat tambahan khusus pemisahan host admin:
+
+- Host terdaftar di `C:\Windows\System32\drivers\etc\hosts`:
   `127.0.0.1 admin.localhost`
-
-Di PowerShell, `npm` diblokir execution policy sehingga harus memakai
-`npm.cmd`.
-
-## Build frontend
-
-```powershell
-cd C:\xampp\htdocs\osc414\lib\frontend\web\react
-npm install
-npm run build
-```
-
-`npm run build` = `tsc --noEmit && vite build`. Kalau TypeScript salah, build
-berhenti dan `public/` tidak ditimpa.
-
-Hasil build ada di `lib/frontend/web/react/public/`. Folder `public/` tidak
-di-version control.
 
 ## Deploy
 

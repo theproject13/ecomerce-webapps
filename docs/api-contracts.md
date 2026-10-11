@@ -1,5 +1,9 @@
 # Kontrak API
 
+> Ringkasan arsitektur komunikasi, cara menguji endpoint, dan diagnosis
+> 404/500/data kosong ada di [api-database.md](api-database.md). Dokumen ini
+> adalah rujukan **field-level** tiap endpoint.
+
 Semua endpoint storefront berada di `/osc414/api/` dan dilayani origin yang
 sama dengan React, jadi cookie session PHP ikut terkirim tanpa konfigurasi
 CORS tambahan.

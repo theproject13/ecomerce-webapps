@@ -106,15 +106,9 @@ bukan `public/assets/`.
 
 ## Deployment frontend
 
-```powershell
-cd lib/frontend/web/react
-npm install
-npm run build
-```
-
-`npm run build` menjalankan `tsc --noEmit` lalu `vite build`. Build gagal
-jika ada error TypeScript, jadi mesin produksi tidak mungkin menerima bundle
-yang tidak type-safe.
+Build dan deployment frontend dijelaskan di
+[frontend-development.md](frontend-development.md#5-typecheck-dan-build-production)
+dan [deployment-rollback.md](deployment-rollback.md).
 
 ## Verifikasi
 

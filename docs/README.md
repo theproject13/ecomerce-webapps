@@ -2,7 +2,9 @@
 
 > **Dokumen ini adalah "single source of truth" untuk sesi opencode.**
 > Opencode WAJIB membaca dokumen ini sebelum menjalankan aksi apa pun.
-> Tidak menyentuh `README.md` root. Admin panel (`admin/`) tidak disentuh.
+> Admin panel (`admin/`) tidak disentuh. `README.md` root hanya boleh dirapikan
+> dokumentasinya (tanpa mengubah perilaku aplikasi); perubahan kode storefront
+> tetap mengikuti aturan batch di bawah.
 
 Terakhir diperbarui: 2026-10-04
 PRD: `docs/PRD.md`

@@ -28,12 +28,24 @@ cmd /c "C:\xampp\mysql\bin\mysql.exe -u root osc414 < C:\xampp\htdocs\osc414\sql
 cd C:\xampp\htdocs\osc414\lib\frontend\web\react
 npm install
 
-# 6. Jalankan dev server React (port 5173)
+# 6. Build frontend React (WAJIB agar toko tampil di http://localhost/osc414/)
+npm run build
+
+# 7. Buka toko lewat Apache (BUKAN dev server)
+#    http://localhost/osc414/
+
+# OPSTIONAL — hanya untuk ngoding React, jangan dipakai untuk cart/checkout
 npm run dev
 # buka http://localhost:5173/
 ```
 
 Detail tiap langkah ada di bagian 9 (Frontend React) dan bagian 2-7 di bawah.
+
+> **Penting untuk clone di device/laptop baru:** folder
+> `lib/frontend/web/react/public/` (hasil `npm run build`) **tidak ikut git**
+> dan `node_modules/` juga tidak. Jadi sesudah clone wajib `npm install` lalu
+> `npm run build`, kalau tidak halaman React tidak ada dan toko jatuh ke tema
+> PHP lama. Lihat §10.1 untuk memastikan API + database benar-benar konek.
 
 ---
 
@@ -343,6 +355,52 @@ Backend tidak butuh Node - cukup XAMPP jalan:
 | **Error saat upload gambar besar** | `upload_max_filesize` / `post_max_size` masih kecil. Lihat §5. |
 | **Halaman putih tanpa pesan** | Buka `C:\xampp\apache\logs\error.log` untuk pesan detailnya. |
 | **Error "cache path does not exist"** | Folder `lib/*/runtime` hilang. Lihat §6 langkah 3. |
+
+---
+
+## 10.1 Memastikan API + Database konek (wajib sesudah clone)
+
+Frontend React **tidak** menyimpan produk atau akun sendiri. Semua data
+diambil dari API same-origin yang dilayani Yii2 di balik Apache:
+
+| Dipakai untuk | Endpoint |
+|---|---|
+| Homepage (kanal, produk pilihan) | `GET /<folder>/api/storefront/dashboard` |
+| Katalog / pencarian / filter | `GET /<folder>/api/storefront/products` |
+| Status login header | `GET /<folder>/api/storefront/session` |
+| Login / registrasi / riwayat | `POST/GET /<folder>/api/account/*` |
+
+Jadi kalau muncul "Gagal memuat produk (404)" atau "0 Kanal" / "0 Produk
+Pilihan", bukan berarti kodenya hilang — yang putus biasanya DB atau cara
+menyajikan build. Cek API **langsung di browser** (ganti `osc414` kalau nama
+folder beda):
+
+```
+http://localhost/osc414/api/storefront/dashboard
+http://localhost/osc414/api/storefront/products?page=1&per_page=12&sort=newest&scope=all
+http://localhost/osc414/api/account/session
+```
+
+Atau lewat PowerShell:
+
+```powershell
+Invoke-WebRequest "http://localhost/osc414/api/storefront/dashboard" -UseBasicParsing | Select-Object StatusCode, Content
+```
+
+Arti hasilnya:
+
+| Yang muncul | Artinya & solusi |
+|---|---|
+| JSON `{"items":{...},"error":null}` dengan daftar produk/kanal | DB + API konek. Kalau FE masih error, penyebabnya di cara buka/build, bukan DB. |
+| `Unable to connect to database server!` atau HTTP 500 | MySQL belum jalan, atau dump belum ke-import ke DB `osc414`. Ulangi §6. |
+| HTTP 404 | Route API tidak kena: (a) folder store bukan `osc414` tapi `includes/local/configure.php` masih `osc414`, (b) `mod_rewrite`/`AllowOverride All` mati (§4), (c) pakai dev server `:5173` tanpa Apache jalan. |
+| `"total_count":0` padahal data ada | Dump belum lengkap / nama DB beda. Pastikan tabel `platforms_products`, `featured`, `products` berisi. |
+| Login selalu "No match for E-Mail Address and/or Password" | Tabel `customers` kosong (dump belum masuk) atau email/password salah. Cek lewat phpMyAdmin. |
+
+Penyebab paling sering di device kedua: **lupa `npm run build`** (§9.3) atau
+**import dump gagal diam-diam** karena pakai PowerShell tanpa `cmd /c` (§6
+langkah 2). Log detail ada di `lib/frontend/runtime/logs/app.log` dan
+`C:\xampp\apache\logs\error.log`.
 
 ---
 

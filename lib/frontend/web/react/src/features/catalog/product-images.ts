@@ -16,7 +16,7 @@ import { catalogUrl } from '../../lib/api-client'
 
 /**
  * Aset banner dilayani PHP di <catalogBase>/images/banners/..., bukan di base
- * path React (/osc414/react-assets/).
+ * path React (/ecomerce-webapps/react-assets/).
  *
  * Prefix kanal SENGAJA tidak ikut. Argumen `channel` cuma sebagai label pool.
  * Alasannya: `furniture/`, `watch/`, dan seterusnya adalah Windows Junction ke
@@ -24,7 +24,7 @@ import { catalogUrl } from '../../lib/api-client'
  * yang sama persis. Menempelkan nama kanal di URL hanya menambah satu segmen
  * yang tidak melakukan apa-apa, dan yang lebih berbahaya, di kanal furniture
  * `catalogBase` sudah berisi `/furniture` sehingga hasilnya
- * `/osc414/furniture/furniture/...`.
+ * `/ecomerce-webapps/furniture/furniture/...`.
  *
  * Base-nya diambil dari runtime config (ReactShell.php), bukan konstanta Vite,
  * supaya ikut berubah saat path kanal berubah. Lihat docs/migrasi-kanal-react.md

@@ -1,9 +1,9 @@
 {
-  "name": "osc414-storefront",
+  "name": "ecomerce-webapps-storefront",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Frontend React untuk storefront osCommerce osc414",
+  "description": "Frontend React untuk storefront osCommerce ecomerce-webapps",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

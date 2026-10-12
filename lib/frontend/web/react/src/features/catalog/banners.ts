@@ -16,7 +16,7 @@ export type Banner = {
    * catalogBase supaya shopper tetap di kanal yang sedang dibuka.
    *
    * Tanpa pemisahan ini, banner kanal di /furniture menghasilkan
-   * /osc414/furniture/furniture, dan banner "Semua Kanal" justru melempar
+   * /ecomerce-webapps/furniture/furniture, dan banner "Semua Kanal" justru melempar
    * shopper keluar ke toko utama.
    */
   scope: 'channel' | 'store'

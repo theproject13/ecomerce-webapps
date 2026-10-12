@@ -26,7 +26,7 @@ import '../../components/product-detail/product-detail.css'
  * URL halaman adalah /product-detail?id=<products_id>. Path-nya dibuang dari
  * ReactShell::$reactPaths sebagai daftar nama, bukan pola, supaya route PHP
  * lain tetap dipegang PHP. Konsekuensinya URL SEO produk
- * (/osc414/<slug>) tetap dilayani tema PHP; lihat catatan migrasi di
+ * (/ecomerce-webapps/<slug>) tetap dilayani tema PHP; lihat catatan migrasi di
  * docs/README.md soal jembatan antara kedua bentuk URL itu.
  */
 

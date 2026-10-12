@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
-  const deployBase = env.VITE_BASE_PATH || '/osc414/react-assets/'
+  const deployBase = env.VITE_BASE_PATH || '/ecomerce-webapps/react-assets/'
   const devProxyTarget = env.VITE_DEV_PROXY_TARGET || 'http://localhost'
 
   return {
@@ -27,13 +27,13 @@ export default defineConfig(({ mode }) => {
       // halaman PHP, dan aset gambar tetap dilayani Apache di port 80.
       //
       // Vite meneruskan path request apa adanya tanpa memotong prefix, jadi
-      // target HARUS origin polos tanpa path. Kalau target berisi /osc414
-      // maka /osc414/api/x diteruskan menjadi /osc414/osc414/api/x dan 404.
+      // target HARUS origin polos tanpa path. Kalau target berisi /ecomerce-webapps
+      // maka /ecomerce-webapps/api/x diteruskan menjadi /ecomerce-webapps/ecomerce-webapps/api/x dan 404.
       //
-      // Negatif lookahead (?!$) sengaja dipakai agar /osc414/ tanpa nama file
+      // Negatif lookahead (?!$) sengaja dipakai agar /ecomerce-webapps/ tanpa nama file
       // tetap dilayani React (index.html dev) dan bukan dialihkan ke PHP.
       proxy: {
-        '^/osc414/(?!$)': {
+        '^/ecomerce-webapps/(?!$)': {
           target: devProxyTarget,
           changeOrigin: false,
           ws: false,

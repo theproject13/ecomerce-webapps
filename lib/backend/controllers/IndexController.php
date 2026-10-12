@@ -150,7 +150,129 @@ class IndexController extends Sceleton {
         
         $this->view->messageSystemStatusCheck = nl2br(trim($messageSystemStatusCheck));
         unset($messageSystemStatusCheck);
-        return $this->render('index');
+
+        $dash = $this->buildDashboardData();
+        return $this->render('index', [
+            'dash' => $dash,
+            'dashJson' => json_encode($dash),
+        ]);
+    }
+
+    /**
+     * Collect real data for the redesigned dashboard (index view).
+     */
+    private function buildDashboardData()
+    {
+        $currencies = \Yii::$container->get('currencies');
+        $symbolLeft = $currencies->currencies[DEFAULT_CURRENCY]['symbol_left'] ?? '';
+        $symbolRight = $currencies->currencies[DEFAULT_CURRENCY]['symbol_right'] ?? '';
+
+        $summary = new \backend\widgets\SalesSummary();
+        $summary->run();
+        $s = $summary->stats;
+
+        $mk = function ($row, $unfulfilledKey) {
+            $orders = $row['orders'] ?? '0';
+            return [
+                'customers' => $row['customers'] ?? '0',
+                'unfulfilled' => $row[$unfulfilledKey] ?? '0',
+                'avg' => $row['orders_avg_amount'] ?? '',
+                'revenue' => $row['orders_amount'] ?? '',
+                'cSub' => 'Registered accounts',
+                'uSub' => 'Awaiting processing',
+                'aSub' => 'Average order value',
+                'rSub' => $orders . ' orders',
+            ];
+        };
+
+        $periods = [
+            'today' => $mk($s['today'] ?? [], 'orders_new'),
+            'week' => $mk($s['week'] ?? [], 'orders_not_processed'),
+            'month' => $mk($s['month'] ?? [], 'orders_not_processed'),
+            'year' => $mk($s['year'] ?? [], 'orders_not_processed'),
+            'all' => $mk($s['all'] ?? [], 'orders_not_processed'),
+        ];
+
+        $monthCustomers = preg_replace('/[^0-9]/', '', $periods['month']['customers']);
+        $customersGrowth = '+' . ($monthCustomers !== '' ? $monthCustomers : '0');
+
+        // 12 month sales chart
+        $excludeStatuses = \common\helpers\Order::extractStatuses(DASHBOARD_EXCLUDE_ORDER_STATUSES);
+        $dateFrom = date('Y-m-d H:i:s', mktime(0, 0, 0, date('m') - 11, 1, date('Y')));
+        $chartMap = [];
+        $chartQuery = tep_db_query(
+            "select year(o.date_purchased) y, month(o.date_purchased) m, count(*) orders, " .
+            "sum(ot.value*o.currency_value) revenue, avg(ost.value*o.currency_value) avg_value " .
+            "from " . TABLE_ORDERS . " o " .
+            "left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id and ot.class = 'ot_total') " .
+            "left join " . TABLE_ORDERS_TOTAL . " ost on (o.orders_id = ost.orders_id and ost.class = 'ot_subtotal') " .
+            "where o.date_purchased >= '" . tep_db_input($dateFrom) . "' " .
+            "and o.orders_status not in ('" . implode("','", $excludeStatuses) . "') " .
+            "group by year(o.date_purchased), month(o.date_purchased)"
+        );
+        while ($r = tep_db_fetch_array($chartQuery)) {
+            $chartMap[(int)$r['y'] . '-' . (int)$r['m']] = $r;
+        }
+        $labels = [];
+        $revenue = [];
+        $orders = [];
+        $avgValue = [];
+        for ($i = 0; $i < 12; $i++) {
+            $ts = mktime(0, 0, 0, date('m') - 11 + $i, 1, date('Y'));
+            $key = (int)date('Y', $ts) . '-' . (int)date('n', $ts);
+            $labels[] = date('M', $ts);
+            $row = $chartMap[$key] ?? null;
+            $revenue[] = $row ? round((float)$row['revenue'], 2) : 0;
+            $orders[] = $row ? (int)$row['orders'] : 0;
+            $avgValue[] = $row ? round((float)$row['avg_value'], 2) : 0;
+        }
+
+        // Recent orders
+        $languagesId = \Yii::$app->settings->get('languages_id');
+        $ordersUrl = \Yii::$app->urlManager->createUrl('orders');
+        $recentOrders = [];
+        $ordersQuery = tep_db_query(
+            "select o.orders_id, o.customers_name, s.orders_status_name, ot.text as order_total " .
+            "from " . TABLE_ORDERS_STATUS . " s, " . TABLE_ORDERS . " o " .
+            "left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) " .
+            "where o.orders_status = s.orders_status_id and s.language_id = '" . (int)$languagesId . "' and ot.class = 'ot_total' " .
+            "order by o.date_purchased desc limit 6"
+        );
+        while ($o = tep_db_fetch_array($ordersQuery)) {
+            $statusName = (string)$o['orders_status_name'];
+            $lower = strtolower($statusName);
+            if (strpos($lower, 'cancel') !== false || strpos($lower, 'refund') !== false) {
+                $status = 'cancelled';
+            } elseif (strpos($lower, 'deliver') !== false || strpos($lower, 'complete') !== false
+                || strpos($lower, 'ship') !== false || strpos($lower, 'process') !== false) {
+                $status = 'complete';
+            } else {
+                $status = 'pending';
+            }
+            $recentOrders[] = [
+                'id' => $o['orders_id'],
+                'customer' => \common\helpers\Html::encode($o['customers_name']),
+                'amount' => strip_tags($o['order_total']),
+                'status' => $status,
+                'statusLabel' => \common\helpers\Html::encode($statusName),
+                'icon' => 'fa-shopping-bag',
+                'link' => $ordersUrl,
+            ];
+        }
+
+        return [
+            'labels' => $labels,
+            'chart' => [
+                'revenue' => $revenue,
+                'orders' => $orders,
+                'avgValue' => $avgValue,
+            ],
+            'periods' => $periods,
+            'orders' => $recentOrders,
+            'symLeft' => $symbolLeft,
+            'symRight' => $symbolRight,
+            'customersGrowth' => $customersGrowth,
+        ];
     }
 
     public function actionLocations() {

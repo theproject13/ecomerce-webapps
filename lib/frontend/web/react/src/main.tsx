@@ -14,7 +14,7 @@ if (!container) {
 /**
  * Favicon dipasang lewat JS, bukan tag <link> di index.html.
  *
- * Alasannya: base path produksi adalah /osc414/react-assets/, sedangkan di dev
+ * Alasannya: base path produksi adalah /ecomerce-webapps/react-assets/, sedangkan di dev
  * adalah /. Path absolut seperti /favicon.svg akan salah di salah satu mode.
  * assetUrl() mengikuti BASE_URL, jadi dua-duanya benar.
  */

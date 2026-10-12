@@ -53,7 +53,7 @@ class ReactShell
         'orders',
         // Detail produk. ID-nya lewat query string (?id=<products_id>), bukan
         // segmen path, supaya nama path ini tetap bisa dicocokkan sebagai
-        // daftar nama. URL SEO produk (/osc414/<slug>) tetap dilayani tema
+        // daftar nama. URL SEO produk (/ecomerce-webapps/<slug>) tetap dilayani tema
         // PHP; lihat docs/README.md.
         'product-detail',
         // Keranjang React. Batch 4b: /shopping-cart dilayani React untuk toko
@@ -100,11 +100,11 @@ class ReactShell
      * Sub-pohon di bawah kanal yang juga dilayani React.
      *
      * Bedakan dengan $reactPaths: yang di sini boleh punya segmen tambahan di
-     * bawahnya, jadi /osc414/furniture/catalog/all-products ikut React, bukan
-     * hanya /osc414/furniture/product-detail.
+     * bawahnya, jadi /ecomerce-webapps/furniture/catalog/all-products ikut React, bukan
+     * hanya /ecomerce-webapps/furniture/product-detail.
      *
-     * Sengaja hanya berlaku untuk kanal. /osc414/catalog/... milik toko utama
-     * tetap dilayani tema PHP karena URL kategori SEO (/osc414/<slug> disobek
+     * Sengaja hanya berlaku untuk kanal. /ecomerce-webapps/catalog/... milik toko utama
+     * tetap dilayani tema PHP karena URL kategori SEO (/ecomerce-webapps/<slug> disobek
      * TlUrlRule) dan halaman hasil pencarian sudah punya kontrak lama. Mengaktifkannya
      * di toko utama tanpa audit SEO tersendiri berisiko merusak indeksasi.
      *
@@ -141,7 +141,7 @@ class ReactShell
         $relative = rtrim(substr($current, strlen($prefix)), '/');
 
         if ($relative === '') {
-            // Homepage toko utama, contoh /osc414/.
+            // Homepage toko utama, contoh /ecomerce-webapps/.
             return self::isMainPlatform();
         }
 
@@ -149,17 +149,17 @@ class ReactShell
         $channel = strtolower($segments[0]);
 
         if (in_array($channel, self::$channelPaths, true) && self::isChannelPlatform()) {
-            // Homepage kanal, contoh /osc414/furniture/.
+            // Homepage kanal, contoh /ecomerce-webapps/furniture/.
             if (count($segments) === 1) {
                 return true;
             }
 
-            // Path React di bawah kanal, contoh /osc414/furniture/product-detail.
+            // Path React di bawah kanal, contoh /ecomerce-webapps/furniture/product-detail.
             if (count($segments) === 2 && in_array($segments[1], self::$reactPaths, true)) {
                 return true;
             }
 
-            // Sub-pohon kanal, contoh /osc414/furniture/catalog/all-products.
+            // Sub-pohon kanal, contoh /ecomerce-webapps/furniture/catalog/all-products.
             // Segmen setelahnya bebas karena router React yang memutuskan
             // route mana yang ada.
             if (
@@ -180,8 +180,8 @@ class ReactShell
     /**
      * Hanya toko utama yang boleh memakai shell React.
      *
-     * Dipakai untuk path yang bukan milik kanal (/osc414/register,
-     * /osc414/product-detail). Kanal punya daftar path sendiri di bawah.
+     * Dipakai untuk path yang bukan milik kanal (/ecomerce-webapps/register,
+     * /ecomerce-webapps/product-detail). Kanal punya daftar path sendiri di bawah.
      */
     protected static function isMainPlatform()
     {
@@ -330,7 +330,7 @@ class ReactShell
         // catalogBase is the absolute web path the app is served from, NOT a
         // path relative to the install root. routerBasename is built from it,
         // and in production the store sits under the install folder
-        // (/osc414), so a relative "/" would produce a blank page.
+        // (/ecomerce-webapps), so a relative "/" would produce a blank page.
         $catalogBase = $base . $relative;
 
         if ($catalogBase === '') {
@@ -338,9 +338,9 @@ class ReactShell
         }
 
         // installBase is the store root WITHOUT the channel segment, so it is
-        // /osc414 both on the main store and on /furniture. React needs it for
+        // /ecomerce-webapps both on the main store and on /furniture. React needs it for
         // cross-channel links: building those from catalogBase would give
-        // /osc414/furniture/furniture when the banner links to the furniture
+        // /ecomerce-webapps/furniture/furniture when the banner links to the furniture
         // channel while already serving it.
         $config = [
             'platformId' => self::detectedPlatformId(),
@@ -385,15 +385,15 @@ class ReactShell
      * comparison against the base is case-insensitive to match
      * normalizePath().
      *
-     * Leading segments that name a React route are dropped. /osc414/product-
+     * Leading segments that name a React route are dropped. /ecomerce-webapps/product-
      * detail is the main store plus the detail route, so the app base is
-     * /osc414 - not /osc414/product-detail. Without this the shell would tell
+     * /ecomerce-webapps - not /ecomerce-webapps/product-detail. Without this the shell would tell
      * React that it is mounted one level too deep and every absolute URL it
      * builds would gain a stray segment.
      *
      * For a channel URL the same rule applies one level deeper:
-     * /osc414/furniture/catalog/all-products is the furniture channel plus a
-     * router path, so the app base is /osc414/furniture.
+     * /ecomerce-webapps/furniture/catalog/all-products is the furniture channel plus a
+     * router path, so the app base is /ecomerce-webapps/furniture.
      *
      * @return string
      */
@@ -417,8 +417,8 @@ class ReactShell
             array_shift($segments);
         }
 
-        // Sisakan hanya segmen kanal. /osc414/furniture/catalog/all-products
-        // dimount di /osc414/furniture; "catalog/all-products" adalah path
+        // Sisakan hanya segmen kanal. /ecomerce-webapps/furniture/catalog/all-products
+        // dimount di /ecomerce-webapps/furniture; "catalog/all-products" adalah path
         // router, bukan bagian dari base. Tanpa pemotongan ini React mengira
         // ia dimount satu level terlalu dalam dan setiap URL absolut yang
         // dibuatnya mendapat segmen liar.
@@ -463,8 +463,8 @@ class ReactShell
      *
      * lib/frontend/web/react/ReactShell.php -> up four levels is the install
      * root. Comparing it with DOCUMENT_ROOT gives the subfolder the store is
-     * mounted on, for example "/osc414" in
-     * C:\xampp\htdocs\osc414 served from C:\xampp\htdocs.
+     * mounted on, for example "/ecomerce-webapps" in
+     * C:\xampp\htdocs\ecomerce-webapps served from C:\xampp\htdocs.
      */
     protected static function installBasePath()
     {

@@ -2,6 +2,7 @@
 {use class="yii\helpers\Html"}
 {use class="backend\components\TopLeftMenu"}
 {use class="backend\components\TopRightMenu"}
+{use class="backend\components\UserLoginDropdown"}
 {use class="backend\components\Navigation"}
 {use class="backend\components\Breadcrumbs"}
 {$this->beginPage()}
@@ -15,6 +16,9 @@
 
     <link  href="{$app->view->theme->baseUrl}/css/icons.css?{$version}" type="text/css" rel="stylesheet" />
     <link  href="{$app->view->theme->baseUrl}/css/fontawesome/font-awesome.min.css?{$version}" rel="stylesheet"">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     {if defined('WL_ENABLED') && WL_ENABLED === true}
         <link  href="{$app->view->theme->baseUrl}/css/{$smarty.const.WL_COMPANY_STYLE}?{$version}" rel="stylesheet" type="text/css" />
     {/if}
@@ -31,7 +35,8 @@
     <link href="{$app->view->theme->baseUrl}/css/general.css?{$version}" rel="stylesheet" type="text/css" id="general-styles" />
     <script>
         (() => {
-            const themeName = localStorage.getItem('theme') || 'themeLight';
+            const themeName = localStorage.getItem('theme') || 'themeDark';
+            document.documentElement.classList.add(themeName);
             const css = {
                 themeLight: ['theme-light', 'base', 'main', 'style', 'menus'],
                 themeDark: ['theme-dark', 'base-dark', 'main-dark', 'style-dark', 'menus-dark']
@@ -66,6 +71,8 @@
     </script>
     <link href="{$app->view->theme->baseUrl}/css/migration.css?{$version}" type="text/css" rel="stylesheet" />
     <link href="{$app->view->theme->baseUrl}/css/responsive.css?{$version}" rel="stylesheet" type="text/css" />
+    <link href="{$app->view->theme->baseUrl}/css/admin-v2.css?{$version}" rel="stylesheet" type="text/css" />
+    <link href="{$app->view->theme->baseUrl}/css/dashboard-v2.css?{$version}" rel="stylesheet" type="text/css" />
     <script src="{$app->request->baseUrl}/plugins/jquery.min.js?{$version}" type="text/javascript"></script>
     <script src="{Yii::$aliases['@web']}/index/load-languages-js?{$version}" type="text/javascript"></script>
     <script src="{$app->request->baseUrl}/plugins/bootstrap/bootstrap.min.js?{$version}"  type="text/javascript"></script>
@@ -367,6 +374,10 @@
                     <button class="btn" id="themeDark" onclick="setTheme('themeDark')"><i class="icon-moon"></i>
                         {$smarty.const.TEXT_DARK}</button>
                 </div>
+            </div>
+
+            <div class="sidebar-user">
+                {UserLoginDropdown::widget()}
             </div>
 
         </div>

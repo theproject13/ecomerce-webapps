@@ -5,8 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>{$this->title}</title>
 	<link rel="stylesheet" href="{$app->view->theme->baseUrl}/css/fontawesome/font-awesome.min.css">
-	<link href="{$app->view->theme->baseUrl}/css/login.css?3" rel="stylesheet" type="text/css" />
-	<link href="{$app->view->theme->baseUrl}/css/superadmin.css?3" rel="stylesheet" type="text/css" />
+	<link href="{$app->view->theme->baseUrl}/css/login.css?4" rel="stylesheet" type="text/css" />
+	<link href="{$app->view->theme->baseUrl}/css/superadmin.css?4" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="{$app->request->baseUrl}/plugins/jquery.min.js"></script>
 	<script type="text/javascript" src="{$app->request->baseUrl}/plugins/validation/jquery.validate.min.js"></script>
 	<script type="text/javascript" src="{$app->view->theme->baseUrl}/js/login.js?3"></script>
@@ -266,10 +266,6 @@
         };
 
 		$('input[type="password"]').showPassword();
-		
-		var bgArray = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
-		var bg = '{$app->view->theme->baseUrl}/img/' + bgArray[Math.floor(Math.random() * bgArray.length)];
-		$('body').css('background-image', 'url(' + bg + ')');
 	})
 </script>
 {/strip}

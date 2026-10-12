@@ -6,14 +6,14 @@ import { storefrontConfig } from './storefront-config'
  * ReactShell.php menyuntik window.__OSC_STOREFRONT__ di setiap shell, dengan
  * catalogBase dihitung dari path request yang sedang dilayani. Build React
  * hanya satu untuk kelima platform, jadi base path tidak bisa berasal dari
- * import.meta.env: kanal /furniture dan toko utama /osc414 butuh base berbeda.
+ * import.meta.env: kanal /furniture dan toko utama /ecomerce-webapps butuh base berbeda.
  *
  * Di development Vite melayani aplikasi dari root-nya sendiri dan tidak ada
  * tag PHP, jadi storefrontConfig() jatuh ke FALLBACK. Karena itu konstanta
  * VITE_CATALOG_BASE tetap dipakai sebagai sumber nilai fallback.
  */
 function buildTimeCatalogBase(): string {
-  return import.meta.env.VITE_CATALOG_BASE || '/osc414'
+  return import.meta.env.VITE_CATALOG_BASE || '/ecomerce-webapps'
 }
 
 const CONFIG = storefrontConfig()
@@ -51,8 +51,8 @@ type RequestOptions = {
  * Dipakai untuk link antar kanal (banner hero, daftar kanal). Bedanya dengan
  * catalogUrl(): yang ini relatif ke installBase, yaitu root toko tanpa segmen
  * kanal. Di kanal furniture, catalogUrl('furniture') akan menghasilkan
- * /osc414/furniture/furniture karena catalogBase sudah berisi /furniture.
- * channelUrl('furniture') menghasilkan /osc414/furniture yang benar.
+ * /ecomerce-webapps/furniture/furniture karena catalogBase sudah berisi /furniture.
+ * channelUrl('furniture') menghasilkan /ecomerce-webapps/furniture yang benar.
  *
  * Halaman dalam kanal yang sama (product-detail, register) tetap harus lewat
  * catalogUrl() supaya shopper tidak keluar dari mount React-nya.
@@ -96,8 +96,8 @@ export function catalogUrl(path: string): string {
  *
  * catalogUrl() tidak bisa dipakai langsung untuk gambar banner karena
  * assetUrl() di produksi mengembalikan path root-relative
- * (/osc414/react-assets/img/...), bukan URL absolut. Kalau diteruskan ke
- * catalogUrl(), prefix /osc414 akan ditambahkan dua kali dan gambar rusak.
+ * (/ecomerce-webapps/react-assets/img/...), bukan URL absolut. Kalau diteruskan ke
+ * catalogUrl(), prefix /ecomerce-webapps akan ditambahkan dua kali dan gambar rusak.
  */
 export function imageUrl(path?: string | null): string {
   if (!path) {

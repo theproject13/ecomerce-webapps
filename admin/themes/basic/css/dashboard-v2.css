@@ -1,0 +1,451 @@
+/* ==========================================================================
+   Admin V2 - dashboard page (namespaced under .dash-v2)
+   Markup mirrors the provided mockup, themed with the brand green accent.
+   ========================================================================== */
+
+.dash-v2 {
+    color: var(--v2-text);
+}
+
+/* ===== TIME PERIOD TABS ===== */
+.dash-v2 .period-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    background: var(--v2-card);
+    border: 1px solid var(--v2-border);
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+}
+
+.dash-v2 .period-tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--v2-text-sec);
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+}
+
+.dash-v2 .period-tab:hover {
+    color: var(--v2-text);
+}
+
+.dash-v2 .period-tab.active {
+    background: var(--v2-accent);
+    color: #fff;
+    box-shadow: 0 2px 10px var(--v2-accent-glow);
+}
+
+/* ===== SUMMARY CARDS ===== */
+.dash-v2 .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.dash-v2 .summary-card {
+    background: var(--v2-card);
+    border: 1px solid var(--v2-border);
+    border-radius: var(--v2-radius);
+    padding: 22px;
+    transition: all .3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-v2 .summary-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    opacity: .06;
+    transition: opacity .3s;
+}
+
+.dash-v2 .summary-card:hover {
+    background: var(--v2-card-hover);
+    border-color: var(--v2-border-light);
+    transform: translateY(-2px);
+}
+
+.dash-v2 .summary-card:hover::before {
+    opacity: .1;
+}
+
+.dash-v2 .card-purple::before {
+    background: var(--v2-accent);
+}
+
+.dash-v2 .card-orange::before {
+    background: var(--v2-orange);
+}
+
+.dash-v2 .card-cyan::before {
+    background: var(--v2-cyan);
+}
+
+.dash-v2 .card-green::before {
+    background: var(--v2-green);
+}
+
+.dash-v2 .card-blue::before {
+    background: var(--v2-blue);
+}
+
+.dash-v2 .summary-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.dash-v2 .summary-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.dash-v2 .icon-purple {
+    background: var(--v2-accent-glow);
+    color: var(--v2-accent-light);
+}
+
+.dash-v2 .icon-green {
+    background: var(--v2-green-glow);
+    color: var(--v2-green);
+}
+
+.dash-v2 .icon-orange {
+    background: var(--v2-orange-glow);
+    color: var(--v2-orange);
+}
+
+.dash-v2 .icon-cyan {
+    background: var(--v2-cyan-glow);
+    color: var(--v2-cyan);
+}
+
+.dash-v2 .icon-blue {
+    background: var(--v2-blue-glow);
+    color: var(--v2-blue);
+}
+
+.dash-v2 .summary-card-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.dash-v2 .trend-up {
+    background: var(--v2-green-glow);
+    color: var(--v2-green);
+}
+
+.dash-v2 .trend-down {
+    background: var(--v2-red-glow);
+    color: var(--v2-red);
+}
+
+.dash-v2 .summary-card-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--v2-text-sec);
+    margin-bottom: 6px;
+}
+
+.dash-v2 .summary-card-value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    color: var(--v2-text);
+}
+
+.dash-v2 .summary-card-sub {
+    font-size: 11px;
+    color: var(--v2-text-dim);
+    margin-top: 4px;
+}
+
+/* ===== CHART SECTION ===== */
+.dash-v2 .chart-section {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.dash-v2 .chart-card {
+    background: var(--v2-card);
+    border: 1px solid var(--v2-border);
+    border-radius: var(--v2-radius);
+    padding: 24px;
+    overflow: hidden;
+}
+
+.dash-v2 .chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.dash-v2 .chart-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--v2-text);
+}
+
+.dash-v2 .chart-card-subtitle {
+    font-size: 11px;
+    color: var(--v2-text-sec);
+    margin-top: 2px;
+}
+
+.dash-v2 .chart-legend {
+    display: flex;
+    gap: 16px;
+}
+
+.dash-v2 .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--v2-text-sec);
+    font-weight: 500;
+}
+
+.dash-v2 .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dash-v2 .chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+}
+
+.dash-v2 .chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ===== RECENT ORDERS ===== */
+.dash-v2 .recent-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.dash-v2 .recent-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--v2-text);
+}
+
+.dash-v2 .view-all-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--v2-accent-light);
+    cursor: pointer;
+    transition: opacity .2s;
+    text-decoration: none;
+}
+
+.dash-v2 .view-all-btn:hover {
+    opacity: .7;
+    color: var(--v2-accent-light);
+}
+
+.dash-v2 .order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--v2-border);
+    transition: background .15s;
+}
+
+.dash-v2 .order-item:last-child {
+    border-bottom: none;
+}
+
+.dash-v2 .order-item:hover {
+    background: var(--v2-card-hover);
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 8px;
+}
+
+.dash-v2 .order-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--v2-card-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--v2-text-sec);
+    flex-shrink: 0;
+}
+
+.dash-v2 .order-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-v2 .order-info h4 {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    color: var(--v2-text);
+}
+
+.dash-v2 .order-info p {
+    font-size: 10px;
+    color: var(--v2-text-dim);
+    margin: 2px 0 0;
+}
+
+.dash-v2 .order-amount {
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--v2-text);
+}
+
+.dash-v2 .order-status {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.dash-v2 .status-complete {
+    background: var(--v2-green-glow);
+    color: var(--v2-green);
+}
+
+.dash-v2 .status-pending {
+    background: var(--v2-orange-glow);
+    color: var(--v2-orange);
+}
+
+.dash-v2 .status-cancelled {
+    background: var(--v2-red-glow);
+    color: var(--v2-red);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes dashFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dash-v2 .anim {
+    animation: dashFadeUp .45s ease both;
+}
+
+.dash-v2 .d1 {
+    animation-delay: .05s;
+}
+
+.dash-v2 .d2 {
+    animation-delay: .1s;
+}
+
+.dash-v2 .d3 {
+    animation-delay: .15s;
+}
+
+.dash-v2 .d4 {
+    animation-delay: .2s;
+}
+
+.dash-v2 .d5 {
+    animation-delay: .25s;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .dash-v2 .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dash-v2 .chart-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .dash-v2 .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .dash-v2 .period-tabs {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .dash-v2 .summary-card-value {
+        font-size: 20px;
+    }
+
+    .dash-v2 .chart-canvas-wrap {
+        height: 220px;
+    }
+}
+
+@media (max-width: 479px) {
+    .dash-v2 .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-v2 .period-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .dash-v2 .summary-card,
+    .dash-v2 .chart-card {
+        padding: 16px;
+    }
+
+    .dash-v2 .chart-canvas-wrap {
+        height: 180px;
+    }
+}

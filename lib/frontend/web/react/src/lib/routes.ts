@@ -30,7 +30,7 @@ export const routes = {
  *
  * Detail produk dilayani shell React dan terdaftar di
  * ReactShell::$reactPaths. URL SEO dari tema PHP (mis.
- * /osc414/epson-ecotank-et-m2120) sengaja tidak dipakai di sini: path itu
+ * /ecomerce-webapps/epson-ecotank-et-m2120) sengaja tidak dipakai di sini: path itu
  * dilayani PHP theme, sehingga shoppers mendarat di luar React.
  *
  * Path relatif, bukan URL absolut, supaya shopper tetap berada di mount
@@ -50,11 +50,11 @@ export function routeUrl(path: string): string {
  * Pakai channelUrl(), bukan routeUrl(). routeUrl() menempelkan path ke
  * catalogBase, dan di kanal furniture itu sudah berisi /furniture, sehingga
  * banner hero yang menunjuk kanal furniture sendiri akan berakhir di
- * /osc414/furniture/furniture.
+ * /ecomerce-webapps/furniture/furniture.
  *
  * Halaman kanal lain sengaja memakai channelUrl() juga. Kalau shopper di
- * /furniture clicks "Watch", tujuan yang benar adalah /osc414/watch, bukan
- * /osc414/furniture/watch yang tidak ada.
+ * /furniture clicks "Watch", tujuan yang benar adalah /ecomerce-webapps/watch, bukan
+ * /ecomerce-webapps/furniture/watch yang tidak ada.
  */
 export function channelRouteUrl(path: string): string {
   return channelUrl(path)

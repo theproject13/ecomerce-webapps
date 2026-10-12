@@ -7,11 +7,11 @@
  *
  * Tiga lingkungan itu berbeda:
  *  - development: Vite melayani aplikasi dari root-nya sendiri ("/"), dan
- *    request /osc414/* diteruskan ke Apache lewat proxy. Jadi basename "/".
+ *    request /ecomerce-webapps/* diteruskan ke Apache lewat proxy. Jadi basename "/".
  *  - production toko utama: shell disajikan PHP dari path instalasi
- *    ("/osc414/"), jadi basename "/osc414".
- *  - production kanal: shell disajikan untuk /osc414/furniture, jadi basename
- *    "/osc414/furniture".
+ *    ("/ecomerce-webapps/"), jadi basename "/ecomerce-webapps".
+ *  - production kanal: shell disajikan untuk /ecomerce-webapps/furniture, jadi basename
+ *    "/ecomerce-webapps/furniture".
  *
  * Dua kasus production itu tidak bisa dibedakan dari satu build, jadi basename
  * diambil dari ReactShell.php lewat window.__OSC_STOREFRONT__.catalogBase.

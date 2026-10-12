@@ -169,130 +169,6 @@
 
 <body class="context-{$this->context->id}">
 {$this->beginBody()}
-<!-- Header -->
-<header class="header navbar navbar-fixed-top" role="banner">
-    <!-- Top Navigation Bar -->
-    <div class="container">
-
-        <!-- Logo -->
-        <a class="navbar-brand" href="{$app->urlManager->createUrl("index")}">
-            {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_LOGO') && WL_COMPANY_LOGO != ''))}
-                {if is_file(DIR_FS_CATALOG|cat:$app->view->theme->baseUrl|cat:'/img/'|cat:WL_COMPANY_LOGO)}
-                    {$logo = WL_COMPANY_LOGO}
-                {else}
-                    {$logo = 'powerful_long_super.svg'}
-                {/if}
-                <img src="{$app->view->theme->baseUrl}/img/{$logo}"
-                     alt="{$smarty.const.WL_COMPANY_NAME}" width="300" />
-            {else}
-                <img src="{$app->view->theme->baseUrl}/img/oscommerce_logo_white.png" alt="logo" />
-            {/if}
-        </a>
-        <!-- /logo -->
-
-        <!-- Sidebar Toggler -->
-        <a href="#" class="toggle-sidebar bs-tooltip" data-placement="bottom"
-           data-original-title="{$smarty.const.TEXT_MAIN_MENU_TOGGLE_NAVIGATION|escape:'html'}">
-            <i class="icon-reorder"></i>
-        </a>
-        <!-- /Sidebar Toggler -->
-
-        <!-- Top Left Menu -->
-        {TopLeftMenu::widget()}
-        <!-- /Top Left Menu -->
-        {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_PHONE') && WL_COMPANY_PHONE != ''))}
-            <div class="header_phone"><span><i class="icon-phone"></i>{$smarty.const.WL_COMPANY_PHONE}</span></div>
-        {else}
-            <div class="header_phone"><a class="headerPhoneLink" href="tel:{$smarty.const.HEADER_PHONE}"><i class="icon-phone"></i>{$smarty.const.HEADER_PHONE}</a></div>
-        {/if}
-
-        {if $ext = \common\helpers\Acl::checkExtensionAllowed('AdminChat', 'allowed')}
-            {$ext::getHtml()}
-        {/if}
-
-        <!-- Top Right Menu -->
-        {TopRightMenu::widget()}
-        <!-- /Top Right Menu -->
-        <ul class="header_menu_right">
-            {if (defined('WL_ENABLED') && WL_ENABLED === true)}
-                {if ((defined('WL_CONTACT_URL') && WL_CONTACT_URL === true) &&
-                (defined('WL_CONTACT_TEXT') && WL_CONTACT_TEXT != '') &&
-                (defined('WL_CONTACT_WWW') && WL_CONTACT_WWW != ''))}
-                    <li><a href="{$smarty.const.WL_CONTACT_WWW}" target="_blank">{$smarty.const.WL_CONTACT_TEXT}</a></li>
-                {/if}
-            {else}
-                <li><a href="https://www.oscommerce.com/contact"
-                       target="_blank">{$smarty.const.TEXT_HEADER_CONTACT_US}</a></li>
-            {/if}
-            {if (defined('WL_ENABLED') && WL_ENABLED === true)}
-                {if ((defined('WL_SUPPORT_URL') && WL_SUPPORT_URL === true) &&
-                (defined('WL_SUPPORT_TEXT') && WL_SUPPORT_TEXT != '') &&
-                (defined('WL_SUPPORT_WWW') && WL_SUPPORT_WWW != ''))}
-                    <li><a href="{$smarty.const.WL_SUPPORT_WWW}" target="_blank">{$smarty.const.WL_SUPPORT_TEXT}</a></li>
-                {/if}
-            {else}
-                <li><a href="https://www.oscommerce.com/forums/" target="_blank">{$smarty.const.TEXT_SUPPORT}</a>
-                </li>
-            {/if}
-            {if (defined('WL_ENABLED') && WL_ENABLED === true)}
-                {if ((defined('WL_SERVICES_URL') && WL_SERVICES_URL === true) &&
-                (defined('WL_SERVICES_TEXT') && WL_SERVICES_TEXT != '') &&
-                (defined('WL_SERVICES_WWW') && WL_SERVICES_WWW != ''))}
-                    <li><a href="{$smarty.const.WL_SERVICES_WWW}" target="_blank">{$smarty.const.WL_SERVICES_TEXT}</a></li>
-                {/if}
-            {else}
-                <li><a href="https://www.holbi.co.uk/ecommerce-development"
-                       target="_blank">{$smarty.const.TEXT_ECOMMERCE_DEVELOPMENT}</a></li>
-            {/if}
-            <li>
-                {$platforms = \common\classes\platform::getList(false)}
-                {if $platforms|count > 1}
-                    <a href="#popup_platforms" class="btn-main-choose-frontend"
-                       target="_blank">{$smarty.const.TEXT_VIEW_SHOP}</a>
-
-                    <div id="popup_platforms" style="display: none">
-                        <div class="popup-heading">{$smarty.const.CHOOSE_FRONTEND}</div>
-                        <div class="popup-content frontend-links">
-                            {foreach $platforms as $frontend}
-                                <p><a href="//{$frontend.platform_url}" target="_blank">{$frontend.text}</a></p>
-                            {/foreach}
-                        </div>
-                        <div class="noti-btn">
-                            <div><button class="btn btn-cancel">{$smarty.const.IMAGE_CANCEL}</button></div>
-                        </div>
-                        <script type="text/javascript">
-                            (function($) {
-                                $(function() {
-                                    $('.popup-box-wrap .frontend-links a').on('click', function() {
-                                        $('.popup-box-wrap').remove()
-                                    })
-                                })
-                            })(jQuery)
-                        </script>
-                    </div>
-                    <script type="text/javascript">
-                        (function($) {
-                            $(function() {
-                                $('.btn-main-choose-frontend').popUp({ one_popup: false });
-                            })
-                        })(jQuery)
-                    </script>
-                {else}
-                    <a href="{tep_catalog_href_link()}" target="_blank">{$smarty.const.TEXT_VIEW_SHOP}</a>
-                {/if}
-
-            </li>
-            {if (defined('YII_ENV') && YII_ENV === 'dev')}
-                <li><a href="{$app->urlManager->createUrl(['cache_control/'])}">{$smarty.const.BOX_HEADING_CACHE_CONTROL}</a></li>
-            {/if}
-            {include file='./notify.tpl'}
-        </ul>
-    </div>
-    <!-- /top navigation bar -->
-
-
-</header> <!-- /.header -->
-
 <div id="container">
     <div id="sidebar" class="sidebar-fixed">
         <div id="sidebar-content">
@@ -390,28 +266,60 @@
         <div class="container">
             <div class="top_header after">
 
-                <div class="united-date" data-time="{(date("G")*60 + date("i"))}">
-                    <div class="clock_right"><i class="icon-clock-o"></i><span id="clock"></span></div>
-                    <div class="date_right"><i class="icon-calendar-o"></i><span id="date"></span></div>
-                </div>
-                <div class="current-date" style="display: none;">
-                    <div class="text">{$smarty.const.TEXT_CURRENT_TIME}</div>
-                    <div class="clock_right"><i class="icon-clock-o"></i><span id="clock-1"></span></div>
-                    <div class="date_right"><i class="icon-calendar-o"></i><span id="date-1"></span></div>
-                </div>
-                <div class="server-date" style="display: none;">
-                    <div class="text">{$smarty.const.TEXT_SERVER_TIME}</div>
-                    <div class="clock_right"><i class="icon-clock-o"></i><span id="clock-2">{date("G:i")}</span>
+                <a href="#" class="toggle-sidebar bs-tooltip" data-placement="bottom"
+                   data-original-title="{$smarty.const.TEXT_MAIN_MENU_TOGGLE_NAVIGATION|escape:'html'}">
+                    <i class="icon-reorder"></i>
+                </a>
+
+                <a class="head-brand" href="{$app->urlManager->createUrl("index")}">
+                    {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_LOGO') && WL_COMPANY_LOGO != ''))}
+                        {if is_file(DIR_FS_CATALOG|cat:$app->view->theme->baseUrl|cat:'/img/'|cat:WL_COMPANY_LOGO)}
+                            {$logo = WL_COMPANY_LOGO}
+                        {else}
+                            {$logo = 'powerful_long_super.svg'}
+                        {/if}
+                        <img src="{$app->view->theme->baseUrl}/img/{$logo}"
+                             alt="{$smarty.const.WL_COMPANY_NAME}" width="300" />
+                    {else}
+                        <img src="{$app->view->theme->baseUrl}/img/oscommerce_logo_white.png" alt="logo" />
+                    {/if}
+                </a>
+
+                <div class="head-clock">
+                    <div class="united-date" data-time="{(date("G")*60 + date("i"))}">
+                        <div class="clock_right"><i class="icon-clock-o"></i><span id="clock"></span></div>
+                        <div class="date_right"><i class="icon-calendar-o"></i><span id="date"></span></div>
                     </div>
-                    <div class="date_right"><i class="icon-calendar-o"></i><span
-                                id="date-2">{$dayOfWeek[date("w")]}<br>
+                    <div class="current-date" style="display: none;">
+                        <div class="text">{$smarty.const.TEXT_CURRENT_TIME}</div>
+                        <div class="clock_right"><i class="icon-clock-o"></i><span id="clock-1"></span></div>
+                        <div class="date_right"><i class="icon-calendar-o"></i><span id="date-1"></span></div>
+                    </div>
+                    <div class="server-date" style="display: none;">
+                        <div class="text">{$smarty.const.TEXT_SERVER_TIME}</div>
+                        <div class="clock_right"><i class="icon-clock-o"></i><span id="clock-2">{date("G:i")}</span>
+                        </div>
+                        <div class="date_right"><i class="icon-calendar-o"></i><span
+                                    id="date-2">{$dayOfWeek[date("w")]}<br>
                                 {date("j")} {$monthNames[date("n")-1]}, {date("Y")}
                             </span></div>
+                    </div>
                 </div>
 
-                <!-- Breadcrumbs line -->
+                <!-- Breadcrumbs line / page title -->
                 {Breadcrumbs::widget()}
                 <!-- /Breadcrumbs line -->
+
+                <div class="head-actions">
+                    {if $ext = \common\helpers\Acl::checkExtensionAllowed('AdminChat', 'allowed')}
+                        {$ext::getHtml()}
+                    {/if}
+
+                    <!-- Header Notifications -->
+                    <div class="header_notify">
+                        {include file='./notify.tpl'}
+                    </div>
+                </div>
             </div>
             <span id="messageStack">
                     {if \Yii::$app->controller->view->errorMessage != '' }
@@ -448,6 +356,78 @@
                 {$content}
             </div>
             <div class="footer">
+                <ul class="footer-links">
+                    {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_PHONE') && WL_COMPANY_PHONE != ''))}
+                        <li><i class="icon-phone"></i>{$smarty.const.WL_COMPANY_PHONE}</li>
+                    {else}
+                        <li><a class="headerPhoneLink" href="tel:{$smarty.const.HEADER_PHONE}"><i class="icon-phone"></i>{$smarty.const.HEADER_PHONE}</a></li>
+                    {/if}
+                    {if (defined('WL_ENABLED') && WL_ENABLED === true)}
+                        {if ((defined('WL_CONTACT_URL') && WL_CONTACT_URL === true) &&
+                        (defined('WL_CONTACT_TEXT') && WL_CONTACT_TEXT != '') &&
+                        (defined('WL_CONTACT_WWW') && WL_CONTACT_WWW != ''))}
+                            <li><a href="{$smarty.const.WL_CONTACT_WWW}" target="_blank">{$smarty.const.WL_CONTACT_TEXT}</a></li>
+                        {/if}
+                    {else}
+                        <li><a href="https://www.oscommerce.com/contact" target="_blank">{$smarty.const.TEXT_HEADER_CONTACT_US}</a></li>
+                    {/if}
+                    {if (defined('WL_ENABLED') && WL_ENABLED === true)}
+                        {if ((defined('WL_SUPPORT_URL') && WL_SUPPORT_URL === true) &&
+                        (defined('WL_SUPPORT_TEXT') && WL_SUPPORT_TEXT != '') &&
+                        (defined('WL_SUPPORT_WWW') && WL_SUPPORT_WWW != ''))}
+                            <li><a href="{$smarty.const.WL_SUPPORT_WWW}" target="_blank">{$smarty.const.WL_SUPPORT_TEXT}</a></li>
+                        {/if}
+                    {else}
+                        <li><a href="https://www.oscommerce.com/forums/" target="_blank">{$smarty.const.TEXT_SUPPORT}</a></li>
+                    {/if}
+                    {if (defined('WL_ENABLED') && WL_ENABLED === true)}
+                        {if ((defined('WL_SERVICES_URL') && WL_SERVICES_URL === true) &&
+                        (defined('WL_SERVICES_TEXT') && WL_SERVICES_TEXT != '') &&
+                        (defined('WL_SERVICES_WWW') && WL_SERVICES_WWW != ''))}
+                            <li><a href="{$smarty.const.WL_SERVICES_WWW}" target="_blank">{$smarty.const.WL_SERVICES_TEXT}</a></li>
+                        {/if}
+                    {else}
+                        <li><a href="https://www.holbi.co.uk/ecommerce-development" target="_blank">{$smarty.const.TEXT_ECOMMERCE_DEVELOPMENT}</a></li>
+                    {/if}
+                    <li>
+                        {$platforms = \common\classes\platform::getList(false)}
+                        {if $platforms|count > 1}
+                            <a href="#popup_platforms" class="btn-main-choose-frontend" target="_blank">{$smarty.const.TEXT_VIEW_SHOP}</a>
+                            <div id="popup_platforms" style="display: none">
+                                <div class="popup-heading">{$smarty.const.CHOOSE_FRONTEND}</div>
+                                <div class="popup-content frontend-links">
+                                    {foreach $platforms as $frontend}
+                                        <p><a href="//{$frontend.platform_url}" target="_blank">{$frontend.text}</a></p>
+                                    {/foreach}
+                                </div>
+                                <div class="noti-btn">
+                                    <div><button class="btn btn-cancel">{$smarty.const.IMAGE_CANCEL}</button></div>
+                                </div>
+                                <script type="text/javascript">
+                                    (function($) {
+                                        $(function() {
+                                            $('.popup-box-wrap .frontend-links a').on('click', function() {
+                                                $('.popup-box-wrap').remove()
+                                            })
+                                        })
+                                    })(jQuery)
+                                </script>
+                            </div>
+                            <script type="text/javascript">
+                                (function($) {
+                                    $(function() {
+                                        $('.btn-main-choose-frontend').popUp({ one_popup: false });
+                                    })
+                                })(jQuery)
+                            </script>
+                        {else}
+                            <a href="{tep_catalog_href_link()}" target="_blank">{$smarty.const.TEXT_VIEW_SHOP}</a>
+                        {/if}
+                    </li>
+                    {if (defined('YII_ENV') && YII_ENV === 'dev')}
+                        <li><a href="{$app->urlManager->createUrl(['cache_control/'])}">{$smarty.const.BOX_HEADING_CACHE_CONTROL}</a></li>
+                    {/if}
+                </ul>
                 <ul>
                     {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_NAME') && WL_COMPANY_NAME != ''))}
                         <li>Copyright &copy; {$smarty.now|date_format:"%Y"} <a target="_blank"

@@ -23,7 +23,7 @@ class IndexController extends Sceleton {
 
     public function __construct($id, $module = null) {
         $this->default_currency = \Yii::$app->get('platform')->config()->getDefaultCurrency();
-        if ($this->default_currency) {
+        if ($this->default_currency && !\Yii::$app->settings->get('currency')) {
             \Yii::$app->settings->set('currency', $this->default_currency);
         }
         parent::__construct($id, $module);
@@ -59,13 +59,6 @@ class IndexController extends Sceleton {
             }
             die('Access denied.');
         }
-        $lang_var = '';
-        $languages = \common\helpers\Language::get_languages();
-        foreach ($languages as $lItem) {
-            $lang_var .= '<a href="' . \Yii::$app->urlManager->createUrl(['index?language=']) . $lItem['code'] . '">' . $lItem['image_svg'] . '</a>';
-        }
-        $this->topButtons[] = '<div class="admin_top_lang">' . $lang_var . '</div>';
-
         $messageSystemStatusCheck = '';
         $message = (defined('WARNING_SESSION_AUTO_START')
             ? constant('WARNING_SESSION_AUTO_START')
@@ -164,8 +157,10 @@ class IndexController extends Sceleton {
     private function buildDashboardData()
     {
         $currencies = \Yii::$container->get('currencies');
-        $symbolLeft = $currencies->currencies[DEFAULT_CURRENCY]['symbol_left'] ?? '';
-        $symbolRight = $currencies->currencies[DEFAULT_CURRENCY]['symbol_right'] ?? '';
+        $activeCurrency = \Yii::$app->settings->get('currency');
+        $activeCurrency = $activeCurrency ?: DEFAULT_CURRENCY;
+        $symbolLeft = $currencies->currencies[$activeCurrency]['symbol_left'] ?? '';
+        $symbolRight = $currencies->currencies[$activeCurrency]['symbol_right'] ?? '';
 
         $summary = new \backend\widgets\SalesSummary();
         $summary->run();
@@ -178,10 +173,10 @@ class IndexController extends Sceleton {
                 'unfulfilled' => $row[$unfulfilledKey] ?? '0',
                 'avg' => $row['orders_avg_amount'] ?? '',
                 'revenue' => $row['orders_amount'] ?? '',
-                'cSub' => 'Registered accounts',
-                'uSub' => 'Awaiting processing',
-                'aSub' => 'Average order value',
-                'rSub' => $orders . ' orders',
+                'cSub' => (defined('TEXT_DASH_REGISTERED_ACCOUNTS') ? TEXT_DASH_REGISTERED_ACCOUNTS : 'Registered accounts'),
+                'uSub' => (defined('TEXT_DASH_AWAITING_PROCESSING') ? TEXT_DASH_AWAITING_PROCESSING : 'Awaiting processing'),
+                'aSub' => (defined('TEXT_DASH_AVERAGE_ORDER_VALUE') ? TEXT_DASH_AVERAGE_ORDER_VALUE : 'Average order value'),
+                'rSub' => str_replace('{n}', $orders, (defined('TEXT_DASH_ORDERS_COUNT') ? TEXT_DASH_ORDERS_COUNT : '{n} orders')),
             ];
         };
 
@@ -220,7 +215,10 @@ class IndexController extends Sceleton {
         for ($i = 0; $i < 12; $i++) {
             $ts = mktime(0, 0, 0, date('m') - 11 + $i, 1, date('Y'));
             $key = (int)date('Y', $ts) . '-' . (int)date('n', $ts);
-            $labels[] = date('M', $ts);
+            $monthConsts = ['TEXT_JAN', 'TEXT_FAB', 'TEXT_MAR', 'TEXT_APR', 'TEXT_MAY', 'TEXT_JUN', 'TEXT_JUL', 'TEXT_AUG', 'TEXT_SEP', 'TEXT_OCT', 'TEXT_NOV', 'TEXT_DEC'];
+            $labels[] = (defined($monthConsts[(int)date('n', $ts) - 1])
+                ? constant($monthConsts[(int)date('n', $ts) - 1])
+                : date('M', $ts));
             $row = $chartMap[$key] ?? null;
             $revenue[] = $row ? round((float)$row['revenue'], 2) : 0;
             $orders[] = $row ? (int)$row['orders'] : 0;
@@ -229,13 +227,18 @@ class IndexController extends Sceleton {
 
         // Recent orders
         $languagesId = \Yii::$app->settings->get('languages_id');
+        $defaultLangId = (int)\common\helpers\Language::get_language_id(DEFAULT_LANGUAGE)['languages_id'];
         $ordersUrl = \Yii::$app->urlManager->createUrl('orders');
         $recentOrders = [];
         $ordersQuery = tep_db_query(
-            "select o.orders_id, o.customers_name, s.orders_status_name, ot.text as order_total " .
-            "from " . TABLE_ORDERS_STATUS . " s, " . TABLE_ORDERS . " o " .
+            "select o.orders_id, o.customers_name, o.currency_value, " .
+            "coalesce(s1.orders_status_name, s2.orders_status_name) orders_status_name, " .
+            "ot.text as order_total, ot.value as order_value " .
+            "from " . TABLE_ORDERS . " o " .
             "left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) " .
-            "where o.orders_status = s.orders_status_id and s.language_id = '" . (int)$languagesId . "' and ot.class = 'ot_total' " .
+            "left join " . TABLE_ORDERS_STATUS . " s1 on (o.orders_status = s1.orders_status_id and s1.language_id = '" . (int)$languagesId . "') " .
+            "left join " . TABLE_ORDERS_STATUS . " s2 on (o.orders_status = s2.orders_status_id and s2.language_id = '" . $defaultLangId . "') " .
+            "where ot.class = 'ot_total' " .
             "order by o.date_purchased desc limit 6"
         );
         while ($o = tep_db_fetch_array($ordersQuery)) {
@@ -249,10 +252,14 @@ class IndexController extends Sceleton {
             } else {
                 $status = 'pending';
             }
+            $baseAmount = (float)$o['order_value'] * (float)$o['currency_value'];
+            if (!$baseAmount) {
+                $baseAmount = (float)preg_replace('/[^0-9.]/', '', $o['order_total']);
+            }
             $recentOrders[] = [
                 'id' => $o['orders_id'],
                 'customer' => \common\helpers\Html::encode($o['customers_name']),
-                'amount' => strip_tags($o['order_total']),
+                'amount' => $currencies->format($baseAmount, true, $activeCurrency),
                 'status' => $status,
                 'statusLabel' => \common\helpers\Html::encode($statusName),
                 'icon' => 'fa-shopping-bag',

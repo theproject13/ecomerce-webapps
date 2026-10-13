@@ -75,6 +75,26 @@ class AdminFactory {
             \Yii::$app->settings->set('locale', $lng->language['locale']);
             \Yii::$app->settings->set('languages_id', $lng->language['id']);//preparing to switch  
         }
+
+        // currency follows the active language (mirrors client USE_DEFAULT_LANGUAGE_CURRENCY)
+        if (isset($lng->language) && is_array($lng->language) && isset($lng->language['id'])) {
+            $lng_currency = tep_db_fetch_array(tep_db_query(
+                "select configuration_value from " . TABLE_LANGUAGES_FORMATS . " where configuration_key = 'LANGUAGE_CURRENCY' and language_id = '" . (int) $lng->language['id'] . "'"
+            ));
+            $new_currency = (is_array($lng_currency) && tep_not_null($lng_currency['configuration_value']))
+                ? $lng_currency['configuration_value']
+                : (defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '');
+            if ($new_currency != '') {
+                \Yii::$app->settings->set('currency', $new_currency);
+                $lng_currency_id = tep_db_fetch_array(tep_db_query(
+                    "select currencies_id from " . TABLE_CURRENCIES . " where code = '" . tep_db_input($new_currency) . "' and status = 1"
+                ));
+                if (is_array($lng_currency_id)) {
+                    \Yii::$app->settings->set('currency_id', (int) $lng_currency_id['currencies_id']);
+                }
+            }
+        }
+
         $lng->set_locale();
         $lng->load_vars();
 

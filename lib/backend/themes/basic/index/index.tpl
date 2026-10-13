@@ -2,11 +2,11 @@
 <div class="dash-v2">
 
     <div class="period-tabs anim d1" id="periodTabs">
-        <div class="period-tab" data-period="today">Today</div>
-        <div class="period-tab" data-period="week">This Week</div>
-        <div class="period-tab active" data-period="month">This Month</div>
-        <div class="period-tab" data-period="year">This Year</div>
-        <div class="period-tab" data-period="all">Lifetime</div>
+        <div class="period-tab" data-period="today">{$smarty.const.TEXT_DASH_TODAY}</div>
+        <div class="period-tab" data-period="week">{$smarty.const.TEXT_DASH_WEEK}</div>
+        <div class="period-tab active" data-period="month">{$smarty.const.TEXT_DASH_MONTH}</div>
+        <div class="period-tab" data-period="year">{$smarty.const.TEXT_DASH_YEAR}</div>
+        <div class="period-tab" data-period="all">{$smarty.const.TEXT_DASH_LIFETIME}</div>
     </div>
 
     <div class="summary-grid">
@@ -15,7 +15,7 @@
                 <div class="summary-card-icon icon-purple"><i class="fas fa-users"></i></div>
                 <div class="summary-card-trend trend-up"><i class="fas fa-arrow-up"></i> {$dash.customersGrowth}</div>
             </div>
-            <div class="summary-card-label">Total Customers</div>
+            <div class="summary-card-label">{$smarty.const.TEXT_DASH_TOTAL_CUSTOMERS}</div>
             <div class="summary-card-value" id="valCustomers">{$dash.month.customers}</div>
             <div class="summary-card-sub" id="subCustomers">{$dash.month.cSub}</div>
         </div>
@@ -24,7 +24,7 @@
             <div class="summary-card-header">
                 <div class="summary-card-icon icon-orange"><i class="fas fa-clock"></i></div>
             </div>
-            <div class="summary-card-label">Unfulfilled Orders</div>
+            <div class="summary-card-label">{$smarty.const.TEXT_DASH_UNFULFILLED_ORDERS}</div>
             <div class="summary-card-value" id="valUnfulfilled">{$dash.month.unfulfilled}</div>
             <div class="summary-card-sub" id="subUnfulfilled">{$dash.month.uSub}</div>
         </div>
@@ -33,7 +33,7 @@
             <div class="summary-card-header">
                 <div class="summary-card-icon icon-cyan"><i class="fas fa-receipt"></i></div>
             </div>
-            <div class="summary-card-label">Avg. Order Value</div>
+            <div class="summary-card-label">{$smarty.const.TEXT_DASH_AVG_ORDER_VALUE}</div>
             <div class="summary-card-value" id="valAvgOrder">{$dash.month.avg}</div>
             <div class="summary-card-sub" id="subAvgOrder">{$dash.month.aSub}</div>
         </div>
@@ -42,7 +42,7 @@
             <div class="summary-card-header">
                 <div class="summary-card-icon icon-green"><i class="fas fa-coins"></i></div>
             </div>
-            <div class="summary-card-label">Total Revenue</div>
+            <div class="summary-card-label">{$smarty.const.TEXT_DASH_TOTAL_REVENUE}</div>
             <div class="summary-card-value" id="valRevenue">{$dash.month.revenue}</div>
             <div class="summary-card-sub" id="subRevenue">{$dash.month.rSub}</div>
         </div>
@@ -52,13 +52,13 @@
         <div class="chart-card anim d4">
             <div class="chart-card-header">
                 <div>
-                    <div class="chart-card-title">Sales Overview</div>
-                    <div class="chart-card-subtitle">Last 12 months performance</div>
+                    <div class="chart-card-title">{$smarty.const.TEXT_DASH_SALES_OVERVIEW}</div>
+                    <div class="chart-card-subtitle">{$smarty.const.TEXT_DASH_LAST_12_MONTHS}</div>
                 </div>
                 <div class="chart-legend">
-                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-accent);"></div> Revenue</div>
-                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-cyan);"></div> Orders</div>
-                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-orange);"></div> Avg. Value</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-accent);"></div> {$smarty.const.TEXT_DASH_REVENUE}</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-cyan);"></div> {$smarty.const.TEXT_DASH_ORDERS}</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:var(--v2-orange);"></div> {$smarty.const.TEXT_DASH_AVG_VALUE}</div>
                 </div>
             </div>
             <div class="chart-canvas-wrap">
@@ -68,8 +68,8 @@
 
         <div class="chart-card anim d5">
             <div class="recent-header">
-                <h3>Recent Orders</h3>
-                <a class="view-all-btn" href="{$app->urlManager->createUrl('orders')}">View All &rarr;</a>
+                <h3>{$smarty.const.TEXT_DASH_RECENT_ORDERS}</h3>
+                <a class="view-all-btn" href="{$app->urlManager->createUrl('orders')}">{$smarty.const.TEXT_DASH_VIEW_ALL} &rarr;</a>
             </div>
             <div id="recentOrders"></div>
         </div>

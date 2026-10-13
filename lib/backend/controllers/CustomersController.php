@@ -35,7 +35,7 @@ class CustomersController extends Sceleton {
 
     public function __construct($id, $module = null) {
         $this->default_currency = \Yii::$app->get('platform')->config()->getDefaultCurrency();
-        if ($this->default_currency) {
+        if ($this->default_currency && !\Yii::$app->settings->get('currency')) {
             \Yii::$app->settings->set('currency', $this->default_currency);
         }
         parent::__construct($id, $module);

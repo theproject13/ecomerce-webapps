@@ -173,20 +173,6 @@
     <div id="sidebar" class="sidebar-fixed">
         <div id="sidebar-content">
 
-            <!-- Search Input -->
-            <div class="sidebar-search">
-                <div class="input-box">
-                    <button type="submit" class="submit">
-                        <i class="icon-search"></i>
-                    </button>
-                    <span>
-                            <input type="text"
-                                   placeholder="{$smarty.const.TEXT_MAIN_MENU_SEARCH_PLACEHOLDER|escape:'html'}"
-                                   id="menusearch" autocomplete="off">
-                        </span>
-                </div>
-            </div>
-
             <!-- Search Results -->
             <div class="sidebar-search-results">
 
@@ -265,26 +251,33 @@
     <div id="content">
         <div class="container">
             <div class="top_header after">
+                {$languagesArray = \common\helpers\Language::get_languages()}
+                {$current_language_id = \Yii::$app->settings->get('languages_id')}
+                {if !$current_language_id}{$current_language_id = $languagesArray[0]['id']}{/if}
+
+                <a class="head-brand" href="{$app->urlManager->createUrl("index")}">
+                    <span class="head-logo">
+                        <i class="head-logo-icon fas fa-store"></i>
+                        <span class="head-logo-text">os<span class="head-logo-accent">store</span></span>
+                    </span>
+                </a>
 
                 <a href="#" class="toggle-sidebar bs-tooltip" data-placement="bottom"
                    data-original-title="{$smarty.const.TEXT_MAIN_MENU_TOGGLE_NAVIGATION|escape:'html'}">
                     <i class="icon-reorder"></i>
                 </a>
 
-                <a class="head-brand" href="{$app->urlManager->createUrl("index")}">
-                    {if ((defined('WL_ENABLED') && WL_ENABLED === true) && (defined('WL_COMPANY_LOGO') && WL_COMPANY_LOGO != ''))}
-                        {if is_file(DIR_FS_CATALOG|cat:$app->view->theme->baseUrl|cat:'/img/'|cat:WL_COMPANY_LOGO)}
-                            {$logo = WL_COMPANY_LOGO}
-                        {else}
-                            {$logo = 'powerful_long_super.svg'}
-                        {/if}
-                        <img src="{$app->view->theme->baseUrl}/img/{$logo}"
-                             alt="{$smarty.const.WL_COMPANY_NAME}" width="300" />
-                    {else}
-                        <img src="{$app->view->theme->baseUrl}/img/oscommerce_logo_white.png" alt="logo" />
-                    {/if}
-                </a>
+                <!-- page title -->
+                {Breadcrumbs::widget()}
 
+                <!-- header search (filters sidebar menu) -->
+                <div class="head-search">
+                    <i class="icon-search"></i>
+<input type="text" id="headSearch" name="headSearch" autocomplete="off"
+                       placeholder="{$smarty.const.TEXT_MAIN_MENU_SEARCH_PLACEHOLDER|escape:'html'}">
+                </div>
+
+                {if $app->controller->id == 'index' && $app->controller->action->id == 'index'}
                 <div class="head-clock">
                     <div class="united-date" data-time="{(date("G")*60 + date("i"))}">
                         <div class="clock_right"><i class="icon-clock-o"></i><span id="clock"></span></div>
@@ -305,22 +298,53 @@
                             </span></div>
                     </div>
                 </div>
-
-                <!-- Breadcrumbs line / page title -->
-                {Breadcrumbs::widget()}
-                <!-- /Breadcrumbs line -->
+                {/if}
 
                 <div class="head-actions">
+                    <!-- language / country flag dropdown -->
+                    <details class="head-lang">
+                        <summary class="dropdown-toggle" aria-haspopup="true">
+                            {foreach $languagesArray as $lng}
+                                {if $lng['id'] == $current_language_id}{$lng['image_svg']}{/if}
+                            {/foreach}
+                            <i class="icon-chevron-down"></i>
+                        </summary>
+                        <div class="head-lang-menu">
+                            {foreach $languagesArray as $lng}
+                                <a href="{Yii::$app->urlManager->createUrl([$app->controller->route, 'language' => $lng['code']])}">
+                                    {$lng['image_svg']}
+                                    <span>{$lng['name']}</span>
+                                    {if $lng['id'] == $current_language_id}<i class="icon-check"></i>{/if}
+                                </a>
+                            {/foreach}
+                        </div>
+                    </details>
+
                     {if $ext = \common\helpers\Acl::checkExtensionAllowed('AdminChat', 'allowed')}
                         {$ext::getHtml()}
                     {/if}
 
                     <!-- Header Notifications -->
+                    {if $app->controller->view->notificationCount gt 0}
                     <div class="header_notify">
                         {include file='./notify.tpl'}
                     </div>
+                    {/if}
                 </div>
             </div>
+            <script>
+                $(function() {
+                    $(document).on('click', function(e) {
+                        if (!$(e.target).closest('.head-lang').length) {
+                            $('.head-lang').removeAttr('open');
+                        }
+                    });
+
+                    $('#headSearch').on('input keyup', function() {
+                        $('#menusearch').val($(this).val()).trigger('keyup');
+                    });
+                });
+            </script>
             <span id="messageStack">
                     {if \Yii::$app->controller->view->errorMessage != '' }
                         <div class="popup-box-wrap pop-mess">
@@ -363,15 +387,6 @@
                         <li><a class="headerPhoneLink" href="tel:{$smarty.const.HEADER_PHONE}"><i class="icon-phone"></i>{$smarty.const.HEADER_PHONE}</a></li>
                     {/if}
                     {if (defined('WL_ENABLED') && WL_ENABLED === true)}
-                        {if ((defined('WL_CONTACT_URL') && WL_CONTACT_URL === true) &&
-                        (defined('WL_CONTACT_TEXT') && WL_CONTACT_TEXT != '') &&
-                        (defined('WL_CONTACT_WWW') && WL_CONTACT_WWW != ''))}
-                            <li><a href="{$smarty.const.WL_CONTACT_WWW}" target="_blank">{$smarty.const.WL_CONTACT_TEXT}</a></li>
-                        {/if}
-                    {else}
-                        <li><a href="https://www.oscommerce.com/contact" target="_blank">{$smarty.const.TEXT_HEADER_CONTACT_US}</a></li>
-                    {/if}
-                    {if (defined('WL_ENABLED') && WL_ENABLED === true)}
                         {if ((defined('WL_SUPPORT_URL') && WL_SUPPORT_URL === true) &&
                         (defined('WL_SUPPORT_TEXT') && WL_SUPPORT_TEXT != '') &&
                         (defined('WL_SUPPORT_WWW') && WL_SUPPORT_WWW != ''))}
@@ -381,13 +396,13 @@
                         <li><a href="https://www.oscommerce.com/forums/" target="_blank">{$smarty.const.TEXT_SUPPORT}</a></li>
                     {/if}
                     {if (defined('WL_ENABLED') && WL_ENABLED === true)}
-                        {if ((defined('WL_SERVICES_URL') && WL_SERVICES_URL === true) &&
-                        (defined('WL_SERVICES_TEXT') && WL_SERVICES_TEXT != '') &&
-                        (defined('WL_SERVICES_WWW') && WL_SERVICES_WWW != ''))}
-                            <li><a href="{$smarty.const.WL_SERVICES_WWW}" target="_blank">{$smarty.const.WL_SERVICES_TEXT}</a></li>
+                        {if ((defined('WL_CONTACT_URL') && WL_CONTACT_URL === true) &&
+                        (defined('WL_CONTACT_TEXT') && WL_CONTACT_TEXT != '') &&
+                        (defined('WL_CONTACT_WWW') && WL_CONTACT_WWW != ''))}
+                            <li><a href="{$smarty.const.WL_CONTACT_WWW}" target="_blank">{$smarty.const.WL_CONTACT_TEXT}</a></li>
                         {/if}
                     {else}
-                        <li><a href="https://www.holbi.co.uk/ecommerce-development" target="_blank">{$smarty.const.TEXT_ECOMMERCE_DEVELOPMENT}</a></li>
+                        <li><a href="https://www.oscommerce.com/contact" target="_blank">{$smarty.const.TEXT_HEADER_CONTACT_US}</a></li>
                     {/if}
                     <li>
                         {$platforms = \common\classes\platform::getList(false)}
@@ -424,6 +439,15 @@
                             <a href="{tep_catalog_href_link()}" target="_blank">{$smarty.const.TEXT_VIEW_SHOP}</a>
                         {/if}
                     </li>
+                    {if (defined('WL_ENABLED') && WL_ENABLED === true)}
+                        {if ((defined('WL_SERVICES_URL') && WL_SERVICES_URL === true) &&
+                        (defined('WL_SERVICES_TEXT') && WL_SERVICES_TEXT != '') &&
+                        (defined('WL_SERVICES_WWW') && WL_SERVICES_WWW != ''))}
+                            <li><a href="{$smarty.const.WL_SERVICES_WWW}" target="_blank">{$smarty.const.WL_SERVICES_TEXT}</a></li>
+                        {/if}
+                    {else}
+                        <li><a href="https://www.holbi.co.uk/ecommerce-development" target="_blank">{$smarty.const.TEXT_ECOMMERCE_DEVELOPMENT}</a></li>
+                    {/if}
                     {if (defined('YII_ENV') && YII_ENV === 'dev')}
                         <li><a href="{$app->urlManager->createUrl(['cache_control/'])}">{$smarty.const.BOX_HEADING_CACHE_CONTROL}</a></li>
                     {/if}

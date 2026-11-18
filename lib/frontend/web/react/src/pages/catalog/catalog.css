@@ -111,3 +111,109 @@
   height: 13px;
   color: var(--tp-text-hint);
 }
+
+/* =========================================================
+   BROWSE SEMUA KATEGORI
+   Satu kartu per kategori top-level; kartu menampilkan
+   sub-kategorinya lalu tautan "Produk <kategori>".
+   ========================================================= */
+.tp-catbrowse {
+  margin-bottom: 14px;
+}
+
+.tp-catbrowse__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tp-catbrowse__title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--tp-text);
+  margin: 0;
+}
+
+.tp-catbrowse__loading {
+  display: block;
+  height: 120px;
+}
+
+.tp-catbrowse__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.tp-catcard {
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  background: var(--tp-white);
+  padding: 10px 12px;
+  box-shadow: var(--tp-shadow);
+}
+
+.tp-catcard__title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tp-text);
+  margin: 0 0 6px;
+}
+
+.tp-catcard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tp-catcard__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-family: inherit;
+  font-size: 11.5px;
+  color: var(--tp-text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.tp-catcard__link:hover {
+  color: var(--tp-green-dark);
+}
+
+.tp-catcard__link.is-active {
+  color: var(--tp-green-dark);
+  font-weight: 700;
+}
+
+.tp-catcard__link--all {
+  margin-top: 4px;
+  padding-top: 7px;
+  border-top: 1px solid var(--tp-border);
+  font-weight: 700;
+  color: var(--tp-text);
+}
+
+.tp-catcard__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tp-catcard__count {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--tp-text-hint);
+}

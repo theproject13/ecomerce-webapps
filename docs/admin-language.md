@@ -1,6 +1,6 @@
 # Rencana Batch - Pergantian Bahasa Admin (Indonesia / English)
 
-Status: **RANCANA. B1 selesai (fondasi, header, dashboard, menu sidebar). B2+ belum.**
+Status: **RENCANA. B1 selesai (fondasi, header, dashboard, menu sidebar). B2 selesai (Katalog/Produk & Filter, 553 string). B3+ belum.**
 Dibuat: 2026-10-13
 
 Acuan: `docs/README.md`, `docs/architecture.md`, `docs/migrasi-kanal-react.md`.
@@ -63,7 +63,7 @@ Prioritas = dampak paling terlihat bagi admin per hari, lalu dikerjakan per modu
 | Batch | Area | Entity | Sisa en | Sasaran utama | Status |
 | --- | --- | --- | ---: | --- | --- |
 | B1 | Fondasi, header, dashboard, menu sidebar | `admin/main` (label menu), `admin/index`, `AdminFactory`/`InitFactory` | 7 | Dashboard, header (search/clock/flag), seluruh menu sidebar, sinkron currency | **SELESAI** |
-| B2 | Katalog / Produk & Filter | `admin/categories` (381) + `admin/categories/productedit` (10) + `admin/categories/categoryedit` (4) + `admin/productsattributes` (17) + `admin/options-templates` (10) + `admin/products-groups` (8) + `admin/manufacturers` (6) + `admin/google-categories` (18) + `admin/easypopulate` (92) + `admin/features` (7) | ~553 | Halaman **Products/Categories** + filter (yang masih English), form produk, atribut/opsi, impor/ekspor | BELUM |
+| B2 | Katalog / Produk & Filter | `admin/categories` (381) + `admin/categories/productedit` (10) + `admin/categories/categoryedit` (4) + `admin/productsattributes` (17) + `admin/options-templates` (10) + `admin/products-groups` (8) + `admin/manufacturers` (6) + `admin/google-categories` (18) + `admin/easypopulate` (92) + `admin/features` (7) | ~553 | Halaman **Products/Categories** + filter (yang masih English), form produk, atribut/opsi, impor/ekspor | **SELESAI** |
 | B3 | Pelanggan & Pesanan | `admin/customers` (88) + `admin/customers/customeredit` (2) + `admin/orders` (160) + `admin/orders/order-edit` (20) + `admin/orders/create` (5) + `admin/orders_status` (16) + `admin/orders_status_groups` (9) + `admin/orders-comment-template` (14) + `admin/orders-ga` (15) + `admin/orders_products_status` (6) + `admin/orders_products_status_manual` (9) + `admin/coupon_admin` (91) + `admin/gv_sent` (13) + `admin/gv_queue` (2) + `admin/gv_mail` (5) | ~455 | Daftar & detail Pelanggan, Pesanan (order/view, order/edit), status pesanan (termasuk isi tabel `orders_status` id=bahasa), kupon/gift voucher | BELUM |
 | B4 | Pemasaran & Promo | `admin/specials` (7) + `admin/specials/specialedit` (1) + `admin/specials-types` (4) + `admin/featured` (7) + `admin/giveaway` (5) + `admin/sales_statistics` (46) + `admin/socials` (8) + `admin/socials/edit` (6) + `admin/recovery-cart` (1) | ~85 | Sales statistics, Specials, Featured, Give away, Socials | BELUM |
 | B5 | SEO & Konten/CMS | `admin/information_manager` (33) + `admin/meta-tags` (32) + `admin/menus` (14) + `admin/faqdesk` (11) + `admin/elements` (9) + `admin/texts` (28, tool terjemahan) + `admin/sitemap` (7) | ~134 | Halaman/konten, meta tags, menu CMS, FAQ, Terjemahan | BELUM |
@@ -88,13 +88,17 @@ Prioritas = dampak paling terlihat bagi admin per hari, lalu dikerjakan per modu
 - Menu sidebar: 128 konstanta `admin_boxes` + `TEXT_DASHBOARD` di `admin/main` (id).
 - CSS: `BACKEND_CSS_VERSION` s/d 42.
 
-### B2 — Katalog / Produk & Filter
-- Halaman yang masih English dari pantauan: filter produk (Search by, Brand, Status, Stock,
-  Price, Weight, Low stock, Featured, Gift wrap, Virtual, All bundles, Listing/Master/Child/Sale,
-  dan tabel "No data available in table").
-- Entity: `admin/categories` dan turunannya; `admin/easypopulate` untuk Impor/Ekspor.
-- Verifikasi: Buka **Products/Categories** → ubah bahasa → semua filter & toolbar Indonesia;
-  lihat juga halaman edit produk.
+### B2 — Katalog / Produk & Filter — SELESAI
+- 553 baris `language_id=2` dimasukkan (via `C:\Users\iQ06\AppData\Local\Temp\opencode\b2_insert.sql`,
+  digenerate `b2_gen.py`) untuk entity: `admin/categories` (381), `admin/easypopulate` (92),
+  `admin/google-categories` (18), `admin/productsattributes` (17), `admin/categories/productedit` (10),
+  `admin/options-templates` (10), `admin/products-groups` (8), `admin/features` (7), `admin/manufacturers` (6),
+  `admin/categories/categoryedit` (4). Sisa per entity = 0 (terverifikasi lewat query `§5`).
+- Cakupan: filter produk (Search by, Brand, Status, Stock, Price, Weight, Low stock, Featured,
+  Gift wrap, Virtual, All bundles, Listing/Master/Child/Sale), form edit produk/kategori,
+  atribut & opsi, template atribut, grup produk, merek, kategori Google, dan panel Impor/Ekspor.
+- Cache translasi sudah di-flush.
+- Verifikasi manual belum dilakukan (tidak bisa login admin via HTTP — lihat catatan blocker).
 
 ### B3 — Pelanggan & Pesanan
 - Selain `translation`, isi tabel **`orders_status`** untuk `language_id=2` (nama status pesanan),
@@ -195,4 +199,4 @@ Per batch:
 - [ ] Proba regresi: bahasa English → tampilan tidak berubah/rusak.
 - [ ] (B3) Tabel `orders_status` memiliki baris bahasa Indonesia.
 
-Batch berikutnya yang dikerjakan: **B2 — Katalog / Produk & Filter** (menunggu persetujuan).
+Batch berikutnya yang dikerjakan: **B3 — Pelanggan & Pesanan** (menunggu persetujuan).

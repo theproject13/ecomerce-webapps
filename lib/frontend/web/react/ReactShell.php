@@ -56,6 +56,11 @@ class ReactShell
         // daftar nama. URL SEO produk (/ecomerce-webapps/<slug>) tetap dilayani tema
         // PHP; lihat docs/README.md.
         'product-detail',
+        // Landing kategori React. ID-nya lewat query string (?id=<categories_id>),
+        // bukan segmen path, supaya nama path ini tetap bisa dicocokkan sebagai
+        // daftar nama. URL kategori SEO (/ecomerce-webapps/<slug>) tetap dilayani
+        // tema PHP; ReactShell hanya mencocokkan nama path, bukan pola.
+        'category-detail',
         // Keranjang React. Batch 4b: /shopping-cart dilayani React untuk toko
         // utama dan kanal (list nama ini dipakai kedua-duanya). Semua POST
         // tetap lewat /api/cart/* yang memanggil objek shopping_cart yang sama
@@ -71,6 +76,12 @@ class ReactShell
         // mengembalikan URL itu di redirect.php_checkout saat modul online
         // dipilih.
         'checkout',
+        // Halaman statis yang ditautkan dari utility header React. Didaftarkan
+        // di sini supaya request langsung /about, /seller-center, dan /care
+        // dijawab shell React, bukan tema PHP (yang tidak punya route-nya).
+        'about',
+        'seller-center',
+        'care',
     ];
 
     /**
@@ -112,7 +123,34 @@ class ReactShell
      */
     protected static $channelSubtrees = [
         'catalog',
+        // Form "Buat Toko" adalah sub-halaman Seller Center, jadi kanal yang
+        // sudah React perlu ikut menyajikannya, bukan hanya toko utama.
+        'seller-center',
     ];
+
+    /**
+     * Path React toko utama yang punya segmen tambahan di bawah base install.
+     *
+     * Bedakan dengan $reactPaths (satu segmen) dan $channelSubtrees (seluruh
+     * sub-pohon kanal). Daftar ini menyebut route persis, jadi
+     * /ecomerce-webapps/catalog/all-products dilayani React sementara
+     * /ecomerce-webapps/catalog/list-product (AJAX tema) dan
+     * /ecomerce-webapps/catalog/<lain> tetap dilayani PHP.
+     *
+     * Hanya /ecomerce-webapps/catalog/... yang dipindah. URL kategori SEO
+     * (/ecomerce-webapps/<slug>) dan halaman hasil pencarian tidak disentuh,
+     * jadi kontrak lama tetap utuh.
+     *
+     * Setiap nilai di sini harus punya route React yang cocok di
+     * src/app/router.tsx; kalau tidak, React Router akan jatuh ke wildcard
+     * dan mengalihkan ke homepage.
+     */
+    protected static $mainReactPaths = [
+            'catalog/all-products',
+            'catalog/featured-products',
+            'seller-center/daftar-toko',
+            'seller-center/toko',
+        ];
 
     /**
      * True when the current request should be answered by the React shell.
@@ -174,7 +212,15 @@ class ReactShell
             return false;
         }
 
-        return in_array($relative, self::$reactPaths, true) && self::isMainPlatform();
+        if (!self::isMainPlatform()) {
+            return false;
+        }
+
+        if (in_array($relative, self::$reactPaths, true)) {
+            return true;
+        }
+
+        return in_array(strtolower($relative), self::$mainReactPaths, true);
     }
 
     /**
@@ -415,6 +461,29 @@ class ReactShell
 
         while ($segments !== [] && in_array(strtolower($segments[0]), self::$reactPaths, true)) {
             array_shift($segments);
+        }
+
+        // Path React toko utama ber-segmen banyak, mis. catalog/all-products.
+        // Segmen-segmen itu bagian dari path router, bukan base app, jadi harus
+        // dipotong juga; kalau tidak React mengira dimount di
+        // /ecomerce-webapps/catalog/all-products dan setiap URL absolutnya salah.
+        while (true) {
+            $matched = false;
+            $lower = array_map('strtolower', $segments);
+
+            foreach (self::$mainReactPaths as $mainPath) {
+                $parts = explode('/', $mainPath);
+
+                if (array_slice($lower, 0, count($parts)) === $parts) {
+                    $segments = array_slice($segments, count($parts));
+                    $matched = true;
+                    break;
+                }
+            }
+
+            if (!$matched) {
+                break;
+            }
         }
 
         // Sisakan hanya segmen kanal. /ecomerce-webapps/furniture/catalog/all-products

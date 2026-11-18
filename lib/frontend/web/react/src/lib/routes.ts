@@ -18,11 +18,17 @@ export const routes = {
   orders: 'account/history',
   addresses: 'account/address-book',
   contact: 'contact',
+  about: 'about',
+  sellerCenter: 'seller-center',
+  sellerOnboarding: 'seller-center/daftar-toko',
+  sellerDashboard: 'seller-center/toko',
+  care: 'care',
   furniture: 'furniture',
   watch: 'watch',
   b2b: 'b2b-supermarket',
   printshop: 'printshop',
   productDetail: 'product-detail',
+  categoryDetail: 'category-detail',
 } as const
 
 /**
@@ -40,8 +46,41 @@ export function productPath(productsId: number): string {
   return `${routes.productDetail}?id=${productsId}`
 }
 
+/**
+ * Path relatif halaman landing kategori.
+ *
+ * Sama seperti detail produk, id kategori lewat query string (?id=<categories_id>)
+ * supaya nama path tetap bisa dicocokkan sebagai daftar nama di
+ * ReactShell::$reactPaths. URL kategori SEO dari tema PHP (/ecomerce-webapps/<slug>)
+ * sengaja tidak dipakai karena dilayani PHP theme.
+ */
+export function categoryPath(categoryId: number): string {
+  return `${routes.categoryDetail}?id=${categoryId}`
+}
+
 export function routeUrl(path: string): string {
   return catalogUrl(path)
+}
+
+/**
+ * Baca parameter ?next= dari halaman login/daftar.
+ *
+ * Hanya path relatif di dalam storefront yang diterima. Nilai absolut,
+ * protocol-relative, atau yang mencoba keluar dari base instalasi diabaikan
+ * supaya halaman autentikasi tidak bisa dipakai sebagai open redirect.
+ */
+export function safeNextPath(value: string | null): string | null {
+  if (!value) {
+    return null
+  }
+
+  const path = value.trim().replace(/^\/+/, '')
+
+  if (path === '' || /^[a-z][a-z0-9+.-]*:/i.test(path) || path.includes('..')) {
+    return null
+  }
+
+  return path
 }
 
 /**

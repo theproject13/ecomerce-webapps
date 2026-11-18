@@ -49,10 +49,10 @@ export function StoreHeader({ storeName, cartCount, channels, session }: StoreHe
       <div className="tp-header__utility">
         <div className="tp-header__utility-inner">
           <nav className="tp-header__utility-links" aria-label="Tautan bantuan">
-            <a href={routeUrl(routes.contact)}>Tentang {storeName}</a>
-            <a href={routeUrl(routes.contact)}>Mulai Berjualan</a>
+            <a href={routeUrl(routes.about)}>Tentang {storeName}</a>
+            <a href={routeUrl(routes.sellerCenter)}>Mulai Berjualan</a>
             <a href={routeUrl(routes.featured)}>Promo</a>
-            <a href={routeUrl(routes.contact)}>{storeName} Care</a>
+            <a href={routeUrl(routes.care)}>{storeName} Care</a>
           </nav>
 
           <label className="tp-header__lang">

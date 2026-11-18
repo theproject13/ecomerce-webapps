@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useToast } from '../../components/ui/Toast'
 import {
   EnvelopeIcon,
@@ -11,7 +11,7 @@ import {
   UserIcon,
 } from '../../components/ui/Icon'
 import { STORE_NAME } from '../../lib/brand'
-import { routeUrl, routes } from '../../lib/routes'
+import { routeUrl, routes, safeNextPath } from '../../lib/routes'
 import { register } from '../../features/account/account-api'
 import './register.css'
 
@@ -37,6 +37,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  */
 export function RegisterPage() {
   const { showToast } = useToast()
+  const [params] = useSearchParams()
+  const nextPath = safeNextPath(params.get('next'))
+  const nextQuery = nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''
   const [email, setEmail] = useState('')
   const [firstname, setFirstname] = useState('')
   const [lastname, setLastname] = useState('')
@@ -123,9 +126,9 @@ export function RegisterPage() {
       }
 
       // Registrasi sukses langsung login di PHP. Muat ulang shell supaya
-      // header membaca session baru, lalu mendarat di beranda React (channel
-      // saat ini), bukan halaman akun tema PHP.
-      window.location.assign(routeUrl(routes.home))
+      // header membaca session baru, lalu mendarat di halaman tujuan (next)
+      // atau beranda React di kanal saat ini.
+      window.location.assign(routeUrl(nextPath ?? routes.home))
     } catch (error) {
       setBanner(error instanceof Error ? error.message : 'Pendaftaran gagal. Coba lagi.')
 
@@ -202,7 +205,7 @@ export function RegisterPage() {
           <h1 className="tp-auth__heading">Daftar Sekarang</h1>
           <p className="tp-auth__subheading">
             Sudah punya akun {STORE_NAME}?{' '}
-            <Link to="/login">Masuk</Link>
+              <Link to={`/login${nextQuery}`}>Masuk</Link>
           </p>
 
           <div className="tp-auth__social">

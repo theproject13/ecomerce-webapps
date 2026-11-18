@@ -102,6 +102,19 @@ Katalog kanal. `products` menerima `scope` (`all` / `featured`), `page`,
 (`newest`, `oldest`, `name_asc`, `name_desc`, `price_asc`, `price_desc`).
 `categories` memakai nama field `category_id`.
 
+`products?category_id=<id>` mengikuti cPath tema PHP: memilih kategori induk
+ikut menampilkan produk dari seluruh sub-kategorinya, bukan hanya produk yang
+menempel langsung ke kategori itu. Contoh: `category_id=19` (Top Up & Tagihan,
+produknya ada di anak 20-24) mengembalikan 10 produk.
+
+`categories` mengembalikan kategori yang punya produk di kanal ini **beserta
+leluhurnya**, jadi induk yang produknya hanya ada di sub-kategori tetap
+terdaftar dan anaknya bisa dijelajahi (dipakai kartu "Semua Kategori" di
+`/catalog/all-products`). `product_count` menghitung turunan (sama dengan
+jumlah hasil filter `category_id` kategori itu), sehingga tidak ada kategori
+tanpa produk di daftar. Field tetap `{category_id, parent_id, name,
+product_count, url}`; halaman menyusun pohonnya dari `parent_id`.
+
 `meta.platform_id` selalu mengikuti kanal dari path, bukan dari query. Jadi
 `?platform=`, `?platformId=`, `?channel=`, dan `?store=` diabaikan; yang
 mengubah platform hanya segmen URL. Parameter `?platform_id=` sendiri masih
@@ -154,6 +167,121 @@ Yii normal.
 jadi token diputar pada setiap POST yang diterima. Client yang menahan token
 lama harus mengambil yang baru; `features/cart/cart-api.ts` mencoba ulang satu
 kali pada 400 karena itu bentuk token basi, bukan kegagalan add cart.
+
+## `GET /api/home/categories`
+
+Kategori untuk grid "Kategori Populer" di homepage. Berbeda dari
+`/api/catalog/categories` (hanya `id`/`parent`/`status`), endpoint ini
+mengirim nama, dibatasi platform aktif, dan hanya kategori dengan
+`show_on_home = 1`.
+
+Tidak ada parameter. `meta.language_id` mengikuti bahasa runtime.
+
+Contoh respons:
+
+```json
+{
+  "items": [
+    {
+      "category_id": 19,
+      "name": "Top Up & Tagihan",
+      "children": [
+        { "category_id": 20, "name": "Pulsa" },
+        { "category_id": 21, "name": "Paket Data" },
+        { "category_id": 22, "name": "Listrik PLN" },
+        { "category_id": 23, "name": "Roaming" },
+        { "category_id": 24, "name": "Nomor Telepon" }
+      ]
+    }
+  ],
+  "meta": { "language_id": 1, "count": 6 },
+  "error": null
+}
+```
+
+`children` berisi anak langsung (satu tingkat) tiap kategori top-level. Sumber
+kategori adalah database, dikelola lewat Catalog admin; frontend memilih ikon
+dari kata kunci nama dan jatuh ke daftar cadangan bila respons kosong.
+
+## Endpoint top-up
+
+| Endpoint | Method | Fungsi |
+| --- | --- | --- |
+| `/api/topup/csrf` | `GET` | Mengembalikan `{ok, csrfToken}` dan memasang cookie `_csrf` |
+| `/api/topup/submit` | `POST` | Menyimpan permintaan top-up ke tabel `topup_orders` |
+
+Pola CSRF-nya sama dengan keranjang (lihat bagian di atas): ambil token dari
+`/api/topup/csrf`, bukan dari runtime config.
+
+`POST /api/topup/submit` menerima `service`, `phone_number`, dan `amount`
+(body form-urlencoded). `amount` berupa teks; server hanya memakai digitnya,
+jadi "10.000" dan "10,000" sama-sama menjadi `10000` (nominal rupiah selalu
+bilangan bulat).
+
+```json
+{
+  "ok": true,
+  "items": {
+    "topup_orders_id": 2,
+    "service": "Paket Data",
+    "phone_number": "081234567890",
+    "amount": 10000,
+    "status": 0
+  },
+  "error": null
+}
+```
+
+Kode status: `400` tanpa token CSRF, `405` selain POST, `422` bila `service`
+kosong, `phone_number` bukan 8-15 digit, atau `amount` nol setelah normalisasi.
+
+`category_id` disimpan bila nama `service` cocok dengan salah satu anak
+kategori Top Up & Tagihan (mis. "Paket Data" -> 21); bila tidak, diisi `null`.
+
+## `GET /api/category/detail`
+
+Data satu kategori untuk halaman landing React
+(`/category-detail?id=<categories_id>`). Berbeda dari `/api/home/categories`
+(khusus grid homepage) dan `/api/storefront/categories` (hanya kategori yang
+punya produk), endpoint ini membawa deskripsi, banner, anak, dan breadcrumb,
+tanpa syarat punya produk.
+
+Parameter wajib: `id` (`categories_id`). Kategori di-scope ke platform aktif
+lewat `platforms_categories` dan ke bahasa runtime lewat `categories_description`;
+kategori tanpa deskripsi di bahasa aktif dianggap tidak ditemukan.
+
+Daftar produk TIDAK diambil di sini. Halaman memakai
+`/api/storefront/products?category_id=` agar paginasi, sort, dan scoping
+platform konsisten dengan halaman katalog lain.
+
+Contoh respons:
+
+```json
+{
+  "items": {
+    "category_id": 19,
+    "parent_id": 0,
+    "name": "Top Up & Tagihan",
+    "description": "Isi pulsa, paket data, token listrik, dan tagihan lainnya.",
+    "image": "images/categories/19/gallery/top-up-tagihan.svg",
+    "children": [
+      { "category_id": 20, "name": "Pulsa", "image": "images/categories/20/gallery/pulsa.svg" }
+    ],
+    "breadcrumb": [
+      { "category_id": 19, "name": "Top Up & Tagihan" }
+    ]
+  },
+  "meta": { "platform_id": 1, "language_id": 1, "currency": "IDR" },
+  "error": null
+}
+```
+
+`image` relatif terhadap `images/` (DIR_WS_IMAGES) dan bernilai `null` bila
+berkas tidak ada. `children` hanya anak langsung (satu tingkat). `breadcrumb`
+berisi jalur induk sampai kategori ini.
+
+Kode status: `404` bila `id` kosong/nol atau kategori tidak ditemukan di
+platform/bahasa aktif.
 
 ## Endpoint bawaan yang harus tetap hidup
 
@@ -223,3 +351,6 @@ keranjang akan ditolak 400. Halaman `/register` masuk kategori ini.
 Perbaikannya mengikuti pola keranjang: ambil token dari endpoint yang berjalan
 di lifecycle Yii normal sebelum mengirim POST. Itu pekerjaan Batch 3 (Akun),
 bukan bagian dari Batch 4a.
+
+Endpoint top-up (`/api/topup/*`) sudah mengikuti pola keranjang ini, jadi tidak
+terkena masalah di atas.

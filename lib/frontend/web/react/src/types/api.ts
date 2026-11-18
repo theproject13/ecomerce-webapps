@@ -27,6 +27,26 @@ export type Category = {
 }
 
 /**
+ * Kategori untuk grid "Kategori Populer" homepage.
+ *
+ * Berbeda dengan `Category` (id-only) dan `CatalogCategory` (hanya yang punya
+ * produk): ini dari /api/home/categories, dikendalikan flag show_on_home, dan
+ * menyertakan anak kategori untuk daftar layanan (mis. Pulsa, Paket Data).
+ */
+export type HomeCategoryChild = {
+  category_id: number
+  parent_id: number
+  name: string
+}
+
+export type HomeCategory = {
+  category_id: number
+  parent_id: number
+  name: string
+  children: HomeCategoryChild[]
+}
+
+/**
  * Data produk untuk kartu.
  *
  * Semua field tampilan opsional (harga coret, diskon, rating, terjual,
@@ -241,4 +261,52 @@ export type CatalogQuery = {
 export type CatalogPayload = {
   items: Product[]
   meta: CatalogMeta
+}
+
+/* ===== LANDING KATEGORI ===== */
+
+/**
+ * Anak kategori pada halaman landing.
+ *
+ * Berbeda dengan HomeCategoryChild (id/nama saja), tile di sini juga membawa
+ * gambar banner supaya sub-kategori punya wajah sendiri di halaman.
+ */
+export type CategoryDetailChild = {
+  category_id: number
+  name: string
+  image: string | null
+}
+
+/** Satu langkah breadcrumb dari kategori teratas sampai kategori ini. */
+export type CategoryBreadcrumb = {
+  category_id: number
+  name: string
+}
+
+/**
+ * Data kategori dari /api/category/detail.
+ *
+ * Deskripsi berisi teks polos (bukan HTML) dari categories_description; gambar
+ * relatif terhadap images/. Produk TIDAK di sini: halaman memakainya lewat
+ * /api/storefront/products?category_id= agar paginasi dan sort konsisten.
+ */
+export type CategoryDetail = {
+  category_id: number
+  parent_id: number
+  name: string
+  description: string
+  image: string | null
+  children: CategoryDetailChild[]
+  breadcrumb: CategoryBreadcrumb[]
+}
+
+export type CategoryDetailMeta = {
+  platform_id: number
+  language_id: number
+  currency: string
+}
+
+export type CategoryDetailPayload = {
+  items: CategoryDetail
+  meta: CategoryDetailMeta
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   EyeIcon,
   LockIcon,
@@ -7,7 +7,7 @@ import {
   UserIcon,
 } from '../../components/ui/Icon'
 import { STORE_NAME } from '../../lib/brand'
-import { routeUrl, routes } from '../../lib/routes'
+import { routeUrl, routes, safeNextPath } from '../../lib/routes'
 import { login } from '../../features/account/account-api'
 import '../register/register.css'
 
@@ -24,6 +24,9 @@ type FieldErrors = {
  * jadi aturan validasi dan pesan errornya identik dengan tema PHP.
  */
 export function LoginPage() {
+  const [params] = useSearchParams()
+  const nextPath = safeNextPath(params.get('next'))
+  const nextQuery = nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
@@ -67,8 +70,8 @@ export function LoginPage() {
 
       // Navigasi penuh, bukan client-side, supaya shell React dimuat ulang dan
       // header membaca session PHP yang baru (logged_in = true). Tujuannya
-      // beranda React (channel saat ini), bukan halaman akun tema PHP.
-      window.location.assign(routeUrl(routes.home))
+      // halaman ?next= kalau ada, atau beranda React di kanal saat ini.
+      window.location.assign(routeUrl(nextPath ?? routes.home))
     } catch (error) {
       setBanner(error instanceof Error ? error.message : 'Masuk gagal. Coba lagi.')
     } finally {
@@ -144,7 +147,7 @@ export function LoginPage() {
           <h1 className="tp-auth__heading">Masuk</h1>
           <p className="tp-auth__subheading">
             Belum punya akun {STORE_NAME}?{' '}
-            <Link to="/register">Daftar</Link>
+              <Link to={`/register${nextQuery}`}>Daftar</Link>
           </p>
 
           {banner ? <div className="tp-auth__banner tp-auth__banner--error">{banner}</div> : null}

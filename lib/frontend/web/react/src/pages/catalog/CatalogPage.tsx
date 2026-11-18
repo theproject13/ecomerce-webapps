@@ -6,7 +6,6 @@ import { StateMessage } from '../../components/ui/StateMessage'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  FilterIcon,
   GridIcon,
   SearchIcon,
 } from '../../components/ui/Icon'
@@ -38,6 +37,45 @@ function readPositiveInt(value: string | null): number | null {
   const parsed = Number.parseInt(value, 10)
 
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+type CategoryNode = CatalogCategory & { children: CatalogCategory[] }
+
+/**
+ * Susun pohon kategori dari daftar datar /storefront/categories.
+ *
+ * Backend mengirim induk dan anak dalam satu daftar (induk ikut walau produknya
+ * hanya ada di sub-kategori), urutannya sudah sort_order lalu categories_id.
+ * Induk ditentukan dari parent_id: kalau induknya tidak ada di daftar (mis.
+ * kategori platform lain), kategori itu diperlakukan sebagai top-level supaya
+ * tidak pernah hilang dari UI.
+ */
+function buildCategoryTree(categories: CatalogCategory[]): CategoryNode[] {
+  const nodes = new Map<number, CategoryNode>()
+
+  for (const category of categories) {
+    nodes.set(category.category_id, { ...category, children: [] })
+  }
+
+  const roots: CategoryNode[] = []
+
+  for (const category of categories) {
+    const node = nodes.get(category.category_id)
+
+    if (!node) {
+      continue
+    }
+
+    const parent = category.parent_id > 0 ? nodes.get(category.parent_id) : undefined
+
+    if (parent) {
+      parent.children.push(node)
+    } else {
+      roots.push(node)
+    }
+  }
+
+  return roots
 }
 
 /**
@@ -151,6 +189,7 @@ export function CatalogPage({ defaultScope = 'all' }: Props) {
   }, [keywords, scope])
 
   const selectedCategory = categories.find((item) => item.category_id === categoryId)
+  const categoryTree = useMemo(() => buildCategoryTree(categories), [categories])
 
   return (
     <div className="tp-page">
@@ -199,29 +238,66 @@ export function CatalogPage({ defaultScope = 'all' }: Props) {
               {option.label}
             </button>
           ))}
-
-          <span className="tp-filter-bar__spacer" />
-
-          <label className="tp-chip tp-chip--icon">
-            <FilterIcon />
-            <select
-              value={categoryId ?? ''}
-              onChange={(event) => {
-                const value = event.target.value
-
-                patchParams({ category_id: value === '' ? null : value, page: null })
-              }}
-              aria-label="Filter kategori"
-            >
-              <option value="">Semua kategori</option>
-              {categories.map((item) => (
-                <option key={item.category_id} value={item.category_id}>
-                  {item.name} ({item.product_count})
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
+
+        {/*
+          Browse kategori: satu kartu per kategori top-level, tiap kartu
+          menampilkan sub-kategorinya lalu tautan "Produk <kategori>" untuk
+          seluruh isinya (termasuk turunan). Klik menulis category_id ke query
+          string, sama seperti tombol sort, jadi bisa di-bookmark.
+        */}
+        <section className="tp-catbrowse" aria-label="Semua kategori">
+          <div className="tp-catbrowse__head">
+            <h2 className="tp-catbrowse__title">Semua Kategori</h2>
+            {categoryId ? (
+              <button
+                type="button"
+                className="tp-chip tp-chip--icon"
+                onClick={() => patchParams({ category_id: null, page: null })}
+              >
+                Semua
+              </button>
+            ) : null}
+          </div>
+
+          {categories.length === 0 ? (
+            <Skeleton className="tp-catbrowse__loading" />
+          ) : (
+            <div className="tp-catbrowse__grid">
+              {categoryTree.map((category) => (
+                <article key={category.category_id} className="tp-catcard">
+                  <h3 className="tp-catcard__title">{category.name}</h3>
+
+                  <ul className="tp-catcard__list">
+                    {category.children.map((child) => (
+                      <li key={child.category_id}>
+                        <button
+                          type="button"
+                          className={`tp-catcard__link${categoryId === child.category_id ? ' is-active' : ''}`}
+                          onClick={() => patchParams({ category_id: child.category_id, page: null })}
+                        >
+                          <span className="tp-catcard__name">{child.name}</span>
+                          <span className="tp-catcard__count">{child.product_count}</span>
+                        </button>
+                      </li>
+                    ))}
+
+                    <li>
+                      <button
+                        type="button"
+                        className={`tp-catcard__link tp-catcard__link--all${categoryId === category.category_id ? ' is-active' : ''}`}
+                        onClick={() => patchParams({ category_id: category.category_id, page: null })}
+                      >
+                        <span className="tp-catcard__name">Produk {category.name}</span>
+                        <span className="tp-catcard__count">{category.product_count}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         <p className="tp-catalog__meta">
           {loading ? (

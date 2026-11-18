@@ -31,11 +31,15 @@ Browser (React)  ──same origin──►  Apache (port 80)  ──►  Yii2 /
 | `/api/storefront/dashboard` | GET | Satu paket untuk homepage: kanal + produk featured |
 | `/api/storefront/channels` | GET | Daftar kanal |
 | `/api/storefront/featured` | GET | Produk unggulan (`limit` 1-48) |
-| `/api/storefront/products` | GET | Katalog kanal (`scope`, `page`, `per_page`, `category_id`, `keywords`, `sort`) |
-| `/api/storefront/categories` | GET | Kategori kanal |
+| `/api/storefront/products` | GET | Katalog kanal (`scope`, `page`, `per_page`, `category_id`, `keywords`, `sort`); `category_id` ikut turunan (cPath) |
+| `/api/storefront/categories` | GET | Kategori kanal + leluhur; `product_count` termasuk turunan |
 | `/api/storefront/session` | GET | Status login untuk header |
+| `/api/home/categories` | GET | Kategori homepage (`show_on_home` + platform + nama) |
+| `/api/category/detail` | GET | Landing kategori (`id`) + deskripsi, banner, anak, breadcrumb |
 | `/api/cart/csrf` | GET | Ambil token CSRF + pasang cookie `_csrf` |
 | `/api/cart/add` | POST | Tambah ke `shopping_cart` PHP (form-urlencoded) |
+| `/api/topup/csrf` | GET | Ambil token CSRF top-up + pasang cookie `_csrf` |
+| `/api/topup/submit` | POST | Simpan permintaan top-up ke `topup_orders` |
 | `/api/account/*` | GET/POST | Login, registrasi, riwayat (Batch 3) |
 | `/api/catalog/products` | GET | **Bawaan lama** (fields minimal) |
 | `/api/catalog/categories` | GET | **Bawaan lama** |
@@ -80,7 +84,15 @@ C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT COUNT(*) FROM osc414.customers;"
 C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT COUNT(*) FROM osc414.platforms;"
 C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT COUNT(*) FROM osc414.platforms_products;"
 C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT COUNT(*) FROM osc414.featured;"
+C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT COUNT(*) FROM osc414.topup_orders;"
+C:\xampp\mysql\bin\mysql.exe -u root -e "SELECT categories_id, LENGTH(categories_description) FROM osc414.categories_description WHERE categories_id BETWEEN 19 AND 29;"
 ```
+
+Data landing kategori diisi lewat skrip seed (deskripsi + banner SVG + produk
+contoh dengan gambar eksternal). Produk baru memakai `warehouses_products`
+(warehouse 1) supaya `quantity`/`in_stock` endpoint terisi; tanpa baris itu
+`Product::get_products_stock()` mengembalikan nol walau
+`products.products_quantity` diisi.
 
 Bila tabel-tabel inti berisi tetapi API mengembalikan nol, dump kemungkinan
 belum lengkap atau nama DB berbeda dari yang dibaca

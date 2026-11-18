@@ -7,6 +7,8 @@ import type {
   DashboardItems,
   DashboardMeta,
   DashboardPayload,
+  HomeCategory,
+  HomeCategoryChild,
   SessionState,
 } from '../../types/api'
 
@@ -33,6 +35,40 @@ function normalizeCategories(raw: unknown): Category[] {
 export async function fetchCategories(signal?: AbortSignal): Promise<Category[]> {
   const envelope = await apiClient.get<ApiEnvelope<CategoryItems>>('/catalog/categories', signal)
   return normalizeCategories(envelope.items?.categories)
+}
+
+/**
+ * Kategori grid "Kategori Populer" (homepage).
+ *
+ * Endpoint /api/home/categories dikendalikan flag show_on_home dan menyertakan
+ * anak kategori, sehingga kedua daftar (grid + layanan top-up) berasal dari
+ * database yang sama dan bisa diatur lewat Catalog admin.
+ */
+function normalizeHomeCategoryChildren(raw: unknown): HomeCategoryChild[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+
+  return (raw as Array<Record<string, unknown>>).map((row) => ({
+    category_id: Number(row.category_id ?? 0),
+    parent_id: Number(row.parent_id ?? 0),
+    name: typeof row.name === 'string' ? row.name : '',
+  }))
+}
+
+export async function fetchHomeCategories(signal?: AbortSignal): Promise<HomeCategory[]> {
+  const envelope = await apiClient.get<ApiEnvelope<HomeCategory[]>>('/home/categories', signal)
+
+  if (!Array.isArray(envelope.items)) {
+    return []
+  }
+
+  return envelope.items.map((row) => ({
+    category_id: Number(row.category_id ?? 0),
+    parent_id: Number(row.parent_id ?? 0),
+    name: typeof row.name === 'string' ? row.name : '',
+    children: normalizeHomeCategoryChildren(row.children),
+  }))
 }
 
 export async function fetchDashboard(

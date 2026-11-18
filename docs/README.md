@@ -6,7 +6,7 @@
 > dokumentasinya (tanpa mengubah perilaku aplikasi); perubahan kode storefront
 > tetap mengikuti aturan batch di bawah.
 
-Terakhir diperbarui: 2026-10-04
+Terakhir diperbarui: 2026-10-15
 PRD: `docs/PRD.md`
 
 ——
@@ -16,6 +16,11 @@ PRD: `docs/PRD.md`
 - **Satu batch, satu aksi.** Hanya kerjakan batch yang berstatus `AKTIF`. Jangan loncat.
 - **Same-origin wajib.** Build Vite melayani Apache, bukan dev server `:5173` untuk cart/checkout.
 - **Jangan ubah database.** Tidak ada `ALTER TABLE`, tidak ada kolom baru.
+  **Pengecualian disetujui owner (2026-10-14):** fitur top-up boleh membuat
+  tabel baru `topup_orders` dan mengisi kategori homepage
+  (`categories`/`categories_description`/`platforms_categories`). Skema tabel
+  inti osCommerce tetap tidak diubah. Detail: `docs/api-contracts.md` dan
+  `docs/api-database.md`.
 - **Jangan sentuh core domain.** Tidak mengedit `lib/common/models/` kecuali bug blocker yang terbukti.
 - **Jangan sentuh core loader.** Tidak mengganti `TlUrlManager`, `TlUrlRule`, `TlSmarty`.
 - **CSRF tetap hidup.** Tidak mengaktifkan `$enableCsrfValidation = false`.
@@ -29,7 +34,7 @@ PRD: `docs/PRD.md`
 
 | Batch | Nama | Risiko | Status | Mulai | Selesai | Catatan |
 |---|---|---|---|---|---|---|
-| **1** | Katalog | 🟢 rendah | `SELESAI (read-only)` | 2026-10-03 | 2026-10-03 | Homepage React + `api/storefront/dashboard`, `api/catalog/categories`. Listing/filter/search masih `PendingPage`. |
+| **1** | Katalog | 🟢 rendah | `SELESAI (read-only)` | 2026-10-03 | 2026-10-03 | Homepage React + `api/storefront/dashboard`, `api/catalog/categories`. Listing katalog (`/catalog/all-products`, `/catalog/featured-products` + filter/sort/pagination) kini React di toko utama (2026-10-15, `ReactShell::$mainReactPaths`); search masih `PendingPage`. |
 | **2** | Detail Produk | 🟡 sedang | `SELESAI (read-only)` | 2026-10-04 | 2026-10-04 | `api/product/detail` + halaman `/product-detail?id=`. Reviews/wishlist/varian tidak dikerjakan, lihat §3. |
 | **4a** | CTA Keranjang | 🟠 tinggi | `SELESAI (add only)` | 2026-10-05 | 2026-10-05 | `api/cart/csrf` + `api/cart/add`; tombol "Tambah ke keranjang" dan "Beli sekarang" di halaman detail. Cart/checkout tetap PHP. |
 | **3** | Akun | 🟠 tinggi | `SELESAI (login/logout/registrasi/profil/riwayat)` | 2026-10-06 | 2026-10-06 | login/logout/registrasi/profil/riwayat pesanan via `api/account/*`. Alamat & edit profil/reset password masih ditautkan ke halaman PHP (di luar cakupan). |
@@ -60,7 +65,7 @@ dipangkas, dan tidak boleh diasumsikan berubah tanpa audit ulang.
 | `products_xsell` | **0** | Related products tidak ada. |
 | Tabel wishlist | **tidak ada** | Butuh skema baru → dilarang di batch ini. |
 | `properties_to_products` | 173 | Spesifikasi bisa dibangun. |
-| `categories` (aktif) | 18, dengan 78 relasi | Breadcrumb bisa dibangun. |
+| `categories` (aktif) | 18, dengan 78 relasi | Breadcrumb bisa dibangun. **Kedaluwarsa 2026-10-14:** sekarang 29 kategori (kategori homepage baru ditambahkan; lihat pengecualian DB di §1). |
 
 **Currency.** `Currencies::systemCurrencyCode()` mengembalikan `GBP`, dan `USE_MARKET_PRICES`
 bernilai `False` sehingga core tidak melakukan konversi. Jadi `products_price` dibaca apa
@@ -89,7 +94,8 @@ konfigurasi currency di admin / tabel kurs, **bukan** sisi klien. Perlu keputusa
 
 - [x] Endpoint read-only: `/api/storefront/dashboard`, `/api/catalog/categories`
 - [x] React mount di shell, storefront homepage melayani React
-- [ ] Pagination/filter/sorting berfungsi — **belum**, listing masih `PendingPage`
+- [x] Pagination/filter/sorting berfungsi — halaman `/catalog/all-products` React: chip sort, filter kategori, paginasi (`halaman 1 dari 9`), dan `/catalog/featured-products`
+- [x] Browse kategori — kartu "Semua Kategori" per kategori top-level (anak + "Produk <kategori>"), filter `category_id` induk ikut menampilkan produk sub-kategori (cPath, 2026-10-15)
 - [ ] URL lama tetap valid
 - [x] Admin panel tidak rusak
 - [x] Tidak ada perubahan database/models
@@ -207,7 +213,7 @@ Opencode HARUS mengikuti urutan ini.
 | `lib/frontend/controllers/api/CartController.php` | `cart/csrf` + `cart/add` (Batch 4a) |
 | `lib/frontend/components/TlUrlManager.php` | URL manager — **baca, jangan ubah** |
 | `lib/frontend/components/TlUrlRule.php` | URL rule — **baca, jangan ubah** |
-| `lib/frontend/web/react/ReactShell.php` | Allowlist path React (nama, bukan pola) |
+| `lib/frontend/web/react/ReactShell.php` | Allowlist path React (nama + sub-path katalog toko utama, bukan pola) |
 | `lib/common/models/*.php` | Model domain — **hanya baca** |
 | `lib/common/helpers/Product.php` | `getPiceDetails()`, `get_products_stock()`, `get_product_path()` |
 | `lib/common/classes/Images.php` | URL & galeri produk |

@@ -283,10 +283,16 @@ foreach ($channel in $phpChannels) {
 }
 
 Write-Host "`n== 5b. Route PHP lain tidak tertimpa React ==" -ForegroundColor Cyan
-# Toko utama: /catalog/* tetap milik tema PHP. Katalog React hanya diaktifkan
-# di bawah kanal lewat ReactShell::$channelSubtrees, jadi URL kanal dan URL
-# toko utama boleh sama-sama hidup dengan owner berbeda.
-foreach ($path in @('catalog/featured-products', 'catalog/all-products', 'shopping-cart', 'account/login', 'contact')) {
+# Toko utama: /shopping-cart dan katalog React (/catalog/all-products,
+# /catalog/featured-products lewat ReactShell::$mainReactPaths) dilayani shell.
+# Halaman PHP lain harus tetap dirender tema PHP, jadi tidak ada yang tertimpa
+# diam-diam.
+foreach ($path in @('shopping-cart', 'catalog/all-products', 'catalog/featured-products')) {
+  Test-Endpoint -Name "200 /$path (React)" -Url "$StoreBase/$path" -Follow `
+    -BodyContains '<div id="root">'
+}
+
+foreach ($path in @('account/login', 'contact')) {
   Test-Endpoint -Name "200 /$path (PHP, bukan React)" -Url "$StoreBase/$path" -Follow `
     -BodyNotContains '<div id="root">'
 }
@@ -336,6 +342,35 @@ Write-Host "`n== 7b. API katalog ==" -ForegroundColor Cyan
 # utama. platform_id juga tidak boleh dikirim dari klien.
 Test-Endpoint -Name 'API /storefront/products' -Url "$StoreBase/api/storefront/products" -BodyContains '"total_count"'
 Test-Endpoint -Name 'API /storefront/categories' -Url "$StoreBase/api/storefront/categories" -BodyContains '"product_count"'
+
+# Kategori induk yang produknya hanya ada di sub-kategori (mis. Top Up &
+# Tagihan, id 19) harus IKUT terdaftar dengan product_count yang menghitung
+# turunan (cPath), supaya kartu "Semua Kategori" bisa dijelajahi. Filter katalog
+# dengan category_id induk juga harus mengembalikan produk turunannya.
+$parentBody = (& curl.exe -sL "$StoreBase/api/storefront/categories") -join "`n"
+$parentBlock = Get-ApiArrayBlock $parentBody 'items'
+$parentItem = [regex]::Match($parentBlock, '\{[^{}]*"category_id"\s*:\s*19\b[^{}]*\}')
+$parentCount = if ($parentItem.Success) {
+  [int]([regex]::Match($parentItem.Value, '"product_count"\s*:\s*(\d+)').Groups[1].Value)
+} else {
+  0
+}
+
+if ($parentCount -gt 0) {
+  $parentProducts = (& curl.exe -sL "$StoreBase/api/storefront/products?category_id=19&per_page=24") -join "`n"
+  $parentTotal = [int]([regex]::Match($parentProducts, '"total_count"\s*:\s*(\d+)').Groups[1].Value)
+
+  if ($parentTotal -ge $parentCount) {
+    Write-Host ("  PASS  {0,-52} {1}" -f 'kategori induk + produk turunan (cPath)', "id 19 count=$parentCount, filter=$parentTotal produk") -ForegroundColor Green
+    $script:Passed++
+  } else {
+    Write-Host ("  FAIL  {0,-52} {1}" -f 'kategori induk + produk turunan (cPath)', "count=$parentCount, filter=$parentTotal") -ForegroundColor Red
+    $script:Failed++
+  }
+} else {
+  Write-Host '  FAIL  kategori induk 19 tidak ada / count 0 di /storefront/categories (cPath)' -ForegroundColor Red
+  $script:Failed++
+}
 
 # Endpoint katalog tidak punya parameter platform sama sekali: scoping diambil
 # dari platform::currentId(). Yang diuji di sini adalah endpoint tidak

@@ -195,12 +195,14 @@ class StorefrontController extends BaseApiController
         }
 
         if ($categoryId > 0) {
+            // Sertakan turunan (cPath): berbelanja pada kategori induk harus
+            // menampilkan produk dari sub-kategorinya, sama seperti tema PHP.
+            // Tanpa ini kategori induk tanpa produk langsung (mis. Top Up &
+            // Tagihan) justru kosong walaupun anaknya berisi produk.
             $query->innerJoin(
                 ['product_category' => $this->productsToCategoriesTable()],
                 'product_category.products_id = product.products_id'
-                . ' AND product_category.categories_id = :category_id',
-                [':category_id' => $categoryId]
-            );
+            )->andWhere(['product_category.categories_id' => $this->categoryTree($categoryId)]);
         }
 
         if ($keyword !== '') {
@@ -246,12 +248,16 @@ class StorefrontController extends BaseApiController
     }
 
     /**
-     * Kategori yang punya produk di kanal ini, read-only.
+     * Kategori yang relevan untuk kanal ini, read-only.
+     *
+     * Berisi kategori yang punya produk di kanal ini DITAMBAH leluhurnya, jadi
+     * induk yang produknya hanya ada di sub-kategori (mis. Top Up & Tagihan)
+     * tetap muncul dan anaknya bisa dijelajahi. product_count menghitung
+     * turunan (bukan hanya produk langsung) supaya angkanya sama dengan hasil
+     * filter katalog, yang juga menyertakan turunan (cPath).
      *
      * Endpoint bawaan /api/catalog/categories sengaja tidak diubah: bentuk
      * responsnya dipakai konsumen lama dan tidak menyertakan nama kategori.
-     * Dropdown filter di katalog React membutuhkan nama dan jumlah produk per
-     * kanal, jadi keduanya dihitung di sini.
      *
      * categories_description tidak punya kolom platform_id, jadi nama kategori
      * memang global. Yang di-scope per kanal hanya produknya.
@@ -261,14 +267,9 @@ class StorefrontController extends BaseApiController
         $platformId = $this->platformId();
         $languagesId = (int)Yii::$app->settings->get('languages_id');
 
-        $rows = Categories::find()
+        // 1. Jumlah produk langsung per kategori di kanal ini.
+        $countRows = Categories::find()
             ->alias('category')
-            ->innerJoin(
-                ['description' => CategoriesDescription::tableName()],
-                'description.categories_id = category.categories_id'
-                . ' AND description.language_id = :languages_id',
-                [':languages_id' => $languagesId]
-            )
             ->innerJoin(
                 ['product_category' => $this->productsToCategoriesTable()],
                 'product_category.categories_id = category.categories_id'
@@ -285,32 +286,87 @@ class StorefrontController extends BaseApiController
             )
             ->select([
                 'category_id' => 'category.categories_id',
-                'parent_id' => 'category.parent_id',
-                'name' => 'description.categories_name',
-                'sort_order' => 'category.sort_order',
                 'product_count' => 'COUNT(DISTINCT product.products_id)',
             ])
             ->where(['category.categories_status' => 1])
-            ->groupBy([
-                'category.categories_id',
-                'category.parent_id',
-                'description.categories_name',
-                'category.sort_order',
+            ->groupBy(['category.categories_id'])
+            ->asArray()
+            ->all();
+
+        $directCount = [];
+        foreach ($countRows as $row) {
+            $directCount[(int)$row['category_id']] = (int)$row['product_count'];
+        }
+
+        // 2. Semua kategori aktif (id, induk, nama) untuk menelusuri pohon.
+        $categoryRows = Categories::find()
+            ->alias('category')
+            ->innerJoin(
+                ['description' => CategoriesDescription::tableName()],
+                'description.categories_id = category.categories_id'
+                . ' AND description.language_id = :languages_id',
+                [':languages_id' => $languagesId]
+            )
+            ->select([
+                'category_id' => 'category.categories_id',
+                'parent_id' => 'category.parent_id',
+                'name' => 'description.categories_name',
             ])
+            ->where(['category.categories_status' => 1])
             ->orderBy(['category.sort_order' => SORT_ASC, 'category.categories_id' => SORT_ASC])
             ->asArray()
             ->all();
 
+        $parentOf = [];
+        $nameOf = [];
+        $order = [];
+        foreach ($categoryRows as $index => $row) {
+            $id = (int)$row['category_id'];
+            $parentOf[$id] = (int)$row['parent_id'];
+            $nameOf[$id] = (string)$row['name'];
+            $order[$id] = $index;
+        }
+
+        // 3. Kategori relevan: yang punya produk langsung, plus seluruh
+        //    leluhurnya supaya induk tanpa produk langsung tetap bisa dibuka.
+        $relevant = [];
+        foreach (array_keys($directCount) as $id) {
+            $cursor = (int)$id;
+            $guard = 0;
+
+            while ($cursor > 0 && isset($parentOf[$cursor]) && !isset($relevant[$cursor]) && $guard < 100) {
+                $relevant[$cursor] = true;
+                $cursor = (int)$parentOf[$cursor];
+                $guard++;
+            }
+        }
+
+        // 4. Jumlah produk termasuk turunan (cPath), dijumlahkan ke atas.
+        $inclusive = [];
+        foreach ($directCount as $id => $count) {
+            $cursor = (int)$id;
+            $guard = 0;
+
+            while ($cursor > 0 && isset($relevant[$cursor]) && $guard < 100) {
+                $inclusive[$cursor] = ($inclusive[$cursor] ?? 0) + $count;
+                $cursor = (int)$parentOf[$cursor];
+                $guard++;
+            }
+        }
+
+        // 5. Susun hasil mengikuti urutan kategori asli.
         $items = [];
-        foreach ($rows as $row) {
-            $categoryId = (int)$row['category_id'];
+        foreach (array_keys($order) as $id) {
+            if (!isset($relevant[$id])) {
+                continue;
+            }
 
             $items[] = [
-                'category_id' => $categoryId,
-                'parent_id' => (int)$row['parent_id'],
-                'name' => (string)$row['name'],
-                'product_count' => (int)$row['product_count'],
-                'url' => $this->categoryUrl($categoryId),
+                'category_id' => $id,
+                'parent_id' => (int)($parentOf[$id] ?? 0),
+                'name' => $nameOf[$id] ?? '',
+                'product_count' => $inclusive[$id] ?? 0,
+                'url' => $this->categoryUrl($id),
             ];
         }
 
@@ -323,6 +379,34 @@ class StorefrontController extends BaseApiController
             ],
             'error' => null,
         ];
+    }
+
+    /**
+     * Kategori $rootId beserta seluruh turunannya (rekursif lewat parent_id).
+     *
+     * Pohon kategori osCommerce dangkal (dua-tiga level) dan jumlahnya kecil,
+     * jadi penelusuran per-level di PHP lebih sederhana daripada recursive CTE.
+     * Dipakai agar filter katalog category_id berperilaku seperti cPath tema
+     * PHP: memilih induk ikut menampilkan produk sub-kategorinya.
+     *
+     * @return int[]
+     */
+    private function categoryTree($rootId)
+    {
+        $ids = [(int)$rootId];
+        $frontier = [(int)$rootId];
+
+        while ($frontier !== []) {
+            $children = Categories::find()
+                ->select('categories_id')
+                ->where(['parent_id' => $frontier, 'categories_status' => 1])
+                ->column();
+
+            $frontier = array_values(array_diff(array_map('intval', $children), $ids));
+            $ids = array_merge($ids, $frontier);
+        }
+
+        return $ids;
     }
 
     /**

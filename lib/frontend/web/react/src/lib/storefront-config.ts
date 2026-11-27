@@ -2,6 +2,7 @@ export type StorefrontConfig = {
   platformId: number
   platformName: string
   catalogBase: string
+  routerBase: string
   apiBase: string
   installBase: string
   storeName: string
@@ -11,6 +12,7 @@ const FALLBACK: StorefrontConfig = {
   platformId: 1,
   platformName: '',
   catalogBase: '/',
+  routerBase: '/',
   apiBase: '/api',
   installBase: '/',
   storeName: 'osStore',
@@ -35,12 +37,14 @@ export function storefrontConfig(): StorefrontConfig {
 
   const apiBase = normalize(injected.apiBase, FALLBACK.apiBase)
   const catalogBase = normalize(injected.catalogBase, FALLBACK.catalogBase)
+  const routerBase = normalize(injected.routerBase || injected.catalogBase, FALLBACK.routerBase)
   const installBase = normalize(injected.installBase, FALLBACK.installBase)
 
   return {
     platformId: Number(injected.platformId ?? FALLBACK.platformId),
     platformName: String(injected.platformName ?? FALLBACK.platformName),
     catalogBase,
+    routerBase,
     apiBase,
     installBase,
     storeName: String(injected.storeName ?? FALLBACK.storeName),

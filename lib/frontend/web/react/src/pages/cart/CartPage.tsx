@@ -275,12 +275,7 @@ export function CartPage() {
         </ul>
 
         <aside className="cart__summary">
-          <p className="cart__summary-row">
-            <span>Subtotal</span>
-            <b>{formatCurrency(subtotal)}</b>
-          </p>
-
-          {estimate ? (
+          {estimate?.totals.length ? (
             <ul className="cart__totals">
               {estimate.totals.map((total) => (
                 <li className="cart__summary-row" key={total.code}>
@@ -289,7 +284,12 @@ export function CartPage() {
                 </li>
               ))}
             </ul>
-          ) : null}
+          ) : (
+            <p className="cart__summary-row">
+              <span>Subtotal</span>
+              <b>{formatCurrency(subtotal)}</b>
+            </p>
+          )}
 
           <Link className="cart__checkout" to="/checkout">
             Lanjut ke checkout
@@ -315,15 +315,6 @@ export function CartPage() {
             onChooseAddress={chooseAddress}
             onChooseShipping={chooseShipping}
           />
-
-          {/*
-            Kupon dan gift voucher belum dipindahkan ke React. Keranjang PHP
-            tidak bisa jadi jalan keluar untuk toko utama/kanal yang sudah
-            dilayani React, jadi catatan ini hanya informsional, bukan link.
-          */}
-          <p className="cart__php-fallback">
-            Kupon dan gift voucher belum tersedia di halaman ini.
-          </p>
         </aside>
       </div>
     </div>

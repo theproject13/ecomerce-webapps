@@ -39,9 +39,10 @@ PRD: `docs/PRD.md`
 | **4a** | CTA Keranjang | 🟠 tinggi | `SELESAI (add only)` | 2026-10-05 | 2026-10-05 | `api/cart/csrf` + `api/cart/add`; tombol "Tambah ke keranjang" dan "Beli sekarang" di halaman detail. Cart/checkout tetap PHP. |
 | **3** | Akun | 🟠 tinggi | `SELESAI (login/logout/registrasi/profil/riwayat)` | 2026-10-06 | 2026-10-06 | login/logout/registrasi/profil/riwayat pesanan via `api/account/*`. Alamat & edit profil/reset password masih ditautkan ke halaman PHP (di luar cakupan). |
 | **4b** | Keranjang (halaman + update/remove) | 🟠 tinggi | `SELESAI (halaman React)` | 2026-10-06 | 2026-10-06 | `/shopping-cart` jadi React di toko utama + kanal, update/remove + badge real-time + estimasi ongkir (CSRF ketat). Smoke via curl lulus; varian/required attribute belum (lihat Gate-5). |
-| **5** | Checkout + payment (modul existing) | 🔴 tertinggi | `AKTIF` | 2026-10-07 | — | flow lengkap + mapping modul pembayaran existing (cod, offline, multisafepay, paypal, stripe, sagepay) |
+| **5** | Checkout + payment (modul existing) | 🔴 tertinggi | `AKTIF (implementasi selesai)` | 2026-10-07 | — | Implementasi checkout React + jembatan gateway selesai 2026-11-19; `typecheck`/`build`/`php -l` lolos. Gate callback/sandbox/produksi masih menunggu verifikasi provider/owner. |
+| **5.1** | Modul dummy admin/DB (JNE, J&T, bank transfer, QRIS) | 🟡 sedang | `AKTIF` | 2026-11-19 | — | Modul shipping/payment dummy-realis ditambahkan untuk platform 0,1,7,8,9,10. Konfigurasi nyata tersimpan di `platforms_configuration`; tidak ada HTTP call gateway/kurir dan tidak ada konfirmasi pembayaran otomatis. Seed: `docs/sql/seed_dummy_modules.sql`. |
 
-**Aturan:** Hanya satu batch boleh `AKTIF` pada satu waktu.
+**Aturan:** Hanya satu batch boleh `AKTIF` pada satu waktu. Batch 5.1 dikerjakan sebagai perluasan Batch 5 yang masih aktif, bukan batch baru yang berdiri sendiri.
 
 > **Pencatatan status di atas tidak menandai gate sebagai lengkap.** Gate-1 dan Gate-3
 > masih punya item terbuka; lihat §4 dan §7. Status batch di sini berarti "pekerjaan
@@ -151,11 +152,21 @@ Selesai 4b (2026-10-06, diverifikasi smoke via curl):
 
 ### GATE-6 (Batch 5 — checkout + payment)
 
-- [ ] Urutan checkout sama dengan `CheckoutController`
-- [ ] Mapping modul payment existing (cod, offline, multisafepay, paypal_partner, stripe_checkout, sage_pay_server)
-- [ ] Callback payment terverifikasi
-- [ ] Transaksi sandbox sukses
+- [x] Urutan checkout sama dengan `CheckoutController` — alamat/ongkir/payment memakai `OrderManager`; offline lewat `/api/checkout/place`; online biasa lewat form POST same-origin ke `checkout/process`; `popUpMode()`/`directPayment()` masih fallback ke halaman checkout PHP
+- [x] Mapping modul payment existing (cod, offline, multisafepay, paypal_partner, stripe_checkout, sage_pay_server) — `state()` mengirim `online`, `popup`, `direct`; React memilih jalur gateway tanpa merender halaman checkout PHP untuk modul online biasa
+- [ ] Callback payment terverifikasi — menunggu verifikasi server-to-server dengan kredensial provider
+- [ ] Transaksi sandbox sukses — menunggu kredensial/akses sandbox
 - [ ] Transaksi produksi OK (1x) — **hanya setelah gate lengkap**
+
+Verifikasi 2026-11-19: `npm run typecheck`, `npm run build`, dan `php -l` lulus; smoke storefront `54/100`. Seluruh sisa kegagalan smoke berada pada prefix kanal satellite (`/furniture`, `/watch`, `/b2b-supermarket`, `/printshop`) karena environment lokal tidak menyediakan entrypoint direktori kanal/URL DB yang cocok dengan prefix instalasi `ecomerce-webapps`; bukan regresi kode Batch 5.
+
+Tambahan Batch 5.1 (2026-11-19): modul `jne.php`, `jnt.php`, `bank_transfer.php`, `qris.php` dibuat dan seed konfigurasi dijalankan. `php -l` keempat modul lulus; query DB memastikan 42 configuration key baru masing-masing punya 6 baris platform (0,1,7,8,9,10) dan installed lists memuat keempat modul. `GET /api/checkout/summary` masih mengembalikan 401 yang diharapkan untuk guest.
+
+Perbaikan Batch 5.1 (2026-11-19): seed juga mengisi `modules_visibility` untuk keempat modul pada platform 0,1,7,8,9,10. Tanpa baris ini `OrderManager` menyaring modul keluar walaupun statusnya `True`, sehingga checkout masih menampilkan metode lama. Label yang terlihat customer juga dibersihkan: `JNE`, `J&T`, `Bank Transfer`, `QRIS`, serta layanan `REGULAR`, `YES`, `EZ`, `SUPER` tanpa teks `(Dummy)`/`(Dummy rate)`. Tarif dummy dikonversi ke nilai mata uang dasar agar tampilan IDR wajar: JNE `REGULAR=Rp18.945`, `YES=Rp25.260`; J&T `EZ=Rp21.050`, `SUPER=Rp29.470` untuk keranjang uji produk 61.
+
+Verifikasi runtime 2026-11-19 dengan customer login: state checkout menampilkan quote `jne_REG`, `jne_YES`, `jnt_EZ`, `jnt_SUPER` dan payment `bank_transfer`/`qris` dengan `online=false`. Kredensial uji dikembalikan ke hash semula dan baris keranjang uji dihapus. Callback/sandbox, konfirmasi pembayaran, dan transaksi produksi masih tertunda.
+
+Perbaikan white screen 2026-11-19: URL bernilai mata uang/bahasa seperti `/ecomerce-webapps/IDR/shopping-cart` dan `/ecomerce-webapps/id/IDR/shopping-cart` sekarang dikenali sebagai route React oleh `ReactShell`, dengan `routerBase` terpisah dari `apiBase` agar API tetap same-origin di `/ecomerce-webapps/api`. Manifest juga memakai fallback `theme_color`/`background_color` `#ffffff` bila `themes_settings.theme_color` kosong. Render headless Chrome pada URL Apache dan proxy Vite `http://localhost:5173/ecomerce-webapps/IDR/shopping-cart` lulus; skrip PayPal/jQuery lama tidak lagi dimuat oleh shell React.
 
 ——
 

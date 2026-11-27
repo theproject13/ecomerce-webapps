@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, catalogUrl } from '../../lib/api-client'
 import { StateMessage } from '../../components/ui/StateMessage'
 import { Skeleton } from '../../components/ui/Skeleton'
 import {
+  fetchCheckoutCsrf,
   fetchCheckoutSummary,
   placeOrder,
   selectCheckout,
+  submitGatewayForm,
 } from '../../features/checkout/checkout-api'
 import type {
   CheckoutPayload,
@@ -28,9 +30,10 @@ type Done = {
  * dikirim balik dan mengirim pilihan pelanggan: alamat dari address book,
  * metode kirim, dan metode bayar offline.
  *
- * Modul pembayaran online tidak diproses di sini. Saat place mengembalikan 409,
- * pelanggan dialihkan ke checkout PHP (redirect.php_checkout) yang meneruskan
- * ke gateway.
+ * Modul online tanpa JS/pop-up khusus juga diproses di sini: setelah pilihan
+ * tersimpan, browser mengirim form POST same-origin ke checkout/process milik
+ * tema PHP hanya sebagai jembatan gateway. Modul popUpMode()/directPayment()
+ * masih memakai halaman checkout PHP karena butuh aset JS/form dari temanya.
  */
 export function CheckoutPage() {
   const [payload, setPayload] = useState<CheckoutPayload | null>(null)
@@ -40,6 +43,7 @@ export function CheckoutPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [placing, setPlacing] = useState(false)
+  const placingRef = useRef(false)
   const [done, setDone] = useState<Done | null>(null)
   const [billingSame, setBillingSame] = useState(true)
 
@@ -95,25 +99,46 @@ export function CheckoutPage() {
     }
   }, [])
 
-  async function handlePlace(state: CheckoutState) {
+  async function handlePlace(state: CheckoutState, redirect: CheckoutPayload['redirect']) {
+    if (placingRef.current) {
+      return
+    }
+    placingRef.current = true
     setPlacing(true)
     setMessage(null)
 
+    const selection: CheckoutSelection = {
+      sendto: state.sendto || undefined,
+      billto: billingSame ? undefined : state.billto || undefined,
+      shipping: state.shipping.selected ?? undefined,
+      payment: state.payment.selected ?? undefined,
+    }
+
     try {
-      const { status, payload: result } = await placeOrder({
-        sendto: state.sendto || undefined,
-        billto: billingSame ? undefined : state.billto || undefined,
-        shipping: state.shipping.selected ?? undefined,
-        payment: state.payment.selected ?? undefined,
-      })
+      const selected = state.payment.methods.find(
+        (method) => method.code === state.payment.selected,
+      )
+
+      if (selected?.online) {
+        if (selected.popup || selected.direct) {
+          window.location.assign(redirect.php_checkout)
+          return
+        }
+
+        const csrf = await fetchCheckoutCsrf()
+        submitGatewayForm(redirect.gateway_process, selection, csrf)
+        return
+      }
+
+      const { status, payload: result } = await placeOrder(selection)
 
       if (result.ok && result.redirect.success) {
         setDone({ orderId: result.order_id ?? 0, successUrl: result.redirect.success })
         return
       }
 
-      // Modul online: checkout React tidak memproses gateway, jadi alihkan ke
-      // halaman PHP yang sama dengan tema.
+      // Pengaman: API menolak modul online dengan 409. React sudah memilih
+      // jalur gateway di atas, tetapi halaman PHP tetap jadi fallback aman.
       if (status === 409) {
         window.location.assign(result.redirect.php_checkout)
         return
@@ -123,6 +148,7 @@ export function CheckoutPage() {
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : 'Pesanan gagal dibuat.')
     } finally {
+      placingRef.current = false
       setPlacing(false)
     }
   }
@@ -283,12 +309,12 @@ export function CheckoutPage() {
             <ul className="checkout__options">
               {state.payment.methods.map((method) => (
                 <li className="checkout__option" key={method.code}>
-                  <label className={method.online ? 'checkout__option--disabled' : undefined}>
+                  <label>
                     <input
                       type="radio"
                       name="payment"
                       checked={state.payment.selected === method.code}
-                      disabled={busy || method.online}
+                      disabled={busy}
                       onChange={() => void apply({ payment: method.code })}
                     />
                     <span>{method.title}</span>
@@ -301,8 +327,8 @@ export function CheckoutPage() {
             </ul>
             {state.payment.methods.some((method) => method.online) ? (
               <p className="checkout__hint">
-                Metode berlabel "bayar online" diteruskan ke halaman checkout lama saat
-                pesanan dibuat.
+                Metode "bayar online" langsung diteruskan ke gateway setelah Anda
+                mengonfirmasi pesanan di halaman ini.
               </p>
             ) : null}
           </section>
@@ -322,9 +348,15 @@ export function CheckoutPage() {
             type="button"
             className="checkout__primary"
             disabled={!canPlace}
-            onClick={() => void handlePlace(state)}
+            onClick={() => void handlePlace(state, payload.redirect)}
           >
-            {placing ? 'Memproses...' : 'Buat pesanan'}
+            {placing
+              ? 'Memproses...'
+              : state.payment.methods.find(
+                  (method) => method.code === state.payment.selected,
+                )?.online
+                ? 'Lanjut ke pembayaran'
+                : 'Buat pesanan'}
           </button>
 
           {!shippingReady ? (

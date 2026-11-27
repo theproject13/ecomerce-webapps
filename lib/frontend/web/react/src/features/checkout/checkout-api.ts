@@ -29,8 +29,12 @@ export type CheckoutQuote = {
 export type CheckoutPaymentMethod = {
   code: string
   title: string
-  /** true = gateway online, belum didukung checkout React (ditolak 409 saat place). */
+  /** true = gateway online; React menyerahkan ke gateway lewat checkout/process. */
   online: boolean
+  /** true = modul butuh JS/pop-up sendiri, jadi halaman checkout PHP tetap dipakai. */
+  popup: boolean
+  /** true = modul langsung mem-post ke gateway dari form khusus tema PHP. */
+  direct: boolean
   checked: boolean
 }
 
@@ -65,6 +69,8 @@ export type CheckoutPayload = {
   redirect: {
     cart: string
     php_checkout: string
+    /** Jembatan gateway: POST same-origin ke checkout/process milik tema. */
+    gateway_process: string
     login: string
     [key: string]: string
   }
@@ -107,7 +113,7 @@ function parseJson(raw: string): unknown {
  * /api/cart/csrf dipakai ulang: token CSRF milik session, bukan milik
  * controller, jadi nilainya sah untuk POST ke /api/checkout/*.
  */
-async function csrfToken(): Promise<string> {
+export async function fetchCheckoutCsrf(): Promise<string> {
   let response: Response
   try {
     response = await fetch(apiUrl('/cart/csrf'), {
@@ -145,7 +151,7 @@ async function postCheckout(path: string, fields: CheckoutSelection | Record<str
       body.set(key, String(value))
     }
   })
-  body.set('_csrf', await csrfToken())
+  body.set('_csrf', await fetchCheckoutCsrf())
 
   let response: Response
   try {
@@ -201,14 +207,52 @@ export async function selectCheckout(selection: CheckoutSelection): Promise<Chec
 }
 
 /**
- * POST /api/checkout/place: simpan pesanan.
+ * POST /api/checkout/place: simpan pesanan untuk modul offline.
  *
- * Status HTTP dikembalikan bersama payload karena 409 berarti modul pembayaran
- * online: pemanggil harus mengalihkan ke redirect.php_checkout alih-alih
- * menampilkan error biasa.
+ * Status HTTP dikembalikan bersama payload karena 409 tetap dipakai API sebagai
+ * pengaman bila modul online sampai ke sini. Pemanggil mengalihkan ke
+ * redirect.php_checkout (modul pop-up/direct) atau ke jembatan gateway.
  */
 export async function placeOrder(
   selection: CheckoutSelection,
 ): Promise<{ status: number; payload: CheckoutPayload }> {
   return postCheckout('/checkout/place', selection)
+}
+
+/**
+ * Serahkan checkout online ke endpoint checkout/process milik tema PHP.
+ *
+ * Ini bukan navigasi ke halaman checkout PHP: browser mengirim form POST
+ * same-origin berisi token CSRF dan pilihan yang sudah disimpan session.
+ * Modul pembayaran yang menjalankan before_process/after_process lalu
+ * mengarahkan browser ke gateway, sehingga UI checkout tetap React sampai
+ * titik hand-off.
+ */
+export function submitGatewayForm(
+  action: string,
+  fields: CheckoutSelection,
+  csrf: string,
+): void {
+  const form = document.createElement('form')
+  form.method = 'post'
+  form.action = action
+  form.hidden = true
+
+  const values: Record<string, string> = { _csrf: csrf }
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      values[key] = String(value)
+    }
+  })
+
+  Object.entries(values).forEach(([name, value]) => {
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = name
+    input.value = value
+    form.appendChild(input)
+  })
+
+  document.body.appendChild(form)
+  form.submit()
 }

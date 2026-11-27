@@ -167,6 +167,7 @@ class ReactShell
         // run, which is not guaranteed at this point in the bootstrap.
         $base = self::normalizePath(self::installBasePath());
         $current = self::normalizePath(self::requestPath());
+        $rawCurrent = self::requestPath();
 
         $prefix = rtrim($base, '/') . '/';
 
@@ -177,23 +178,28 @@ class ReactShell
         // normalizePath() selalu menambah slash di akhir, jadi path relatif
         // harus dibersihkan lagi sebelum dicocokkan dengan daftar nama.
         $relative = rtrim(substr($current, strlen($prefix)), '/');
+        // Prefix mata uang/bahasa memakai huruf besar, jadi baca dari path
+        // asli. $relative sudah di-lowercase oleh normalizePath().
+        $rawRelative = rtrim(substr($rawCurrent, strlen($prefix)), '/');
 
         if ($relative === '') {
             // Homepage toko utama, contoh /ecomerce-webapps/.
             return self::isMainPlatform();
         }
 
-        $segments = explode('/', $relative);
+        $segments = explode('/', $rawRelative);
         $channel = strtolower($segments[0]);
 
         if (in_array($channel, self::$channelPaths, true) && self::isChannelPlatform()) {
+            $segments = self::stripLocaleSegments(array_slice($segments, 1));
+
             // Homepage kanal, contoh /ecomerce-webapps/furniture/.
-            if (count($segments) === 1) {
+            if ($segments === []) {
                 return true;
             }
 
             // Path React di bawah kanal, contoh /ecomerce-webapps/furniture/product-detail.
-            if (count($segments) === 2 && in_array($segments[1], self::$reactPaths, true)) {
+            if (count($segments) === 1 && in_array($segments[0], self::$reactPaths, true)) {
                 return true;
             }
 
@@ -202,7 +208,7 @@ class ReactShell
             // route mana yang ada.
             if (
                 count($segments) >= 2
-                && in_array(strtolower($segments[1]), self::$channelSubtrees, true)
+                && in_array(strtolower($segments[0]), self::$channelSubtrees, true)
             ) {
                 return true;
             }
@@ -216,11 +222,86 @@ class ReactShell
             return false;
         }
 
-        if (in_array($relative, self::$reactPaths, true)) {
+        $segments = self::stripLocaleSegments($segments);
+        $relative = implode('/', $segments);
+
+        if ($relative === '') {
+            // Homepage toko utama dengan prefix, contoh /ecomerce-webapps/IDR/.
+            return true;
+        }
+
+        if (in_array(strtolower($relative), self::$reactPaths, true)) {
             return true;
         }
 
         return in_array(strtolower($relative), self::$mainReactPaths, true);
+    }
+
+    /**
+     * Memisahkan prefix mata uang (/IDR) dan bahasa+currency (/id/IDR) dari
+     * segmen path. Prefix ini milik URL osCommerce, bukan route React.
+     *
+     * @param array $segments
+     * @return array{0: array, 1: array}
+     */
+    protected static function splitLocalePrefix(array $segments)
+    {
+        if (
+            count($segments) >= 2
+            && preg_match('/^[a-z]{2}$/i', $segments[0])
+            && preg_match('/^[A-Z]{3}$/', $segments[1])
+        ) {
+            return [array_slice($segments, 0, 2), array_slice($segments, 2)];
+        }
+
+        if ($segments !== [] && preg_match('/^[A-Z]{3}$/', $segments[0])) {
+            return [array_slice($segments, 0, 1), array_slice($segments, 1)];
+        }
+
+        return [[], $segments];
+    }
+
+    /**
+     * @param array $segments
+     * @return array
+     */
+    protected static function stripLocaleSegments(array $segments)
+    {
+        $parts = self::splitLocalePrefix($segments);
+
+        return $parts[1];
+    }
+
+    /**
+     * Prefix locale dengan leading slash, dipakai React Router sebagai basename.
+     *
+     * @param string $base
+     * @param string $current
+     * @return string
+     */
+    protected static function localePathPrefix($base, $current)
+    {
+        if ($current === '') {
+            return '';
+        }
+
+        if ($base === '') {
+            $segments = explode('/', trim($current, '/'));
+        } elseif (strcasecmp($current, $base) === 0) {
+            return '';
+        } elseif (stripos($current, $base . '/') === 0) {
+            $segments = explode('/', trim(substr($current, strlen($base) + 1), '/'));
+        } else {
+            return '';
+        }
+
+        if ($segments !== [] && in_array(strtolower($segments[0]), self::$channelPaths, true)) {
+            array_shift($segments);
+        }
+
+        $parts = self::splitLocalePrefix($segments);
+
+        return $parts[0] === [] ? '' : '/' . implode('/', $parts[0]);
     }
 
     /**
@@ -383,6 +464,12 @@ class ReactShell
             $catalogBase = '/';
         }
 
+        $routerBase = rtrim($catalogBase, '/') . self::localePathPrefix($base, $current);
+
+        if ($routerBase === '') {
+            $routerBase = '/';
+        }
+
         // installBase is the store root WITHOUT the channel segment, so it is
         // /ecomerce-webapps both on the main store and on /furniture. React needs it for
         // cross-channel links: building those from catalogBase would give
@@ -392,6 +479,7 @@ class ReactShell
             'platformId' => self::detectedPlatformId(),
             'platformName' => '',
             'catalogBase' => $catalogBase,
+            'routerBase' => $routerBase,
             'apiBase' => rtrim($catalogBase, '/') . '/api',
             'installBase' => $base === '' ? '/' : $base,
             'storeName' => '',
@@ -458,6 +546,8 @@ class ReactShell
         } else {
             return '';
         }
+
+        $segments = self::stripLocaleSegments($segments);
 
         while ($segments !== [] && in_array(strtolower($segments[0]), self::$reactPaths, true)) {
             array_shift($segments);

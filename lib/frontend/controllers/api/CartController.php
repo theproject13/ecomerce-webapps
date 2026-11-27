@@ -356,16 +356,20 @@ class CartController extends BaseApiController
         if (!empty($estimateData['is_logged_customer'])) {
             foreach (($estimateData['addresses'] ?? []) as $address) {
                 $formatId = $address['country']['address_format_id'] ?? null;
+                $label = trim(strip_tags((string)Address::address_format(
+                    $formatId,
+                    $address,
+                    0,
+                    ', ',
+                    ', ',
+                    false
+                )));
+                $label = preg_replace('/\s*,\s*/', ', ', $label);
+                $label = trim((string)$label, " ,\t\n\r\0\x0B");
+
                 $addresses[] = [
                     'address_book_id' => (int)($address['address_book_id'] ?? 0),
-                    'label' => (string)Address::address_format(
-                        $formatId,
-                        $address,
-                        0,
-                        ' ',
-                        ' ',
-                        true
-                    ),
+                    'label' => $label,
                 ];
             }
         }

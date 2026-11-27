@@ -24,4 +24,4 @@
  */
 import { storefrontConfig } from './storefront-config'
 
-export const routerBasename = import.meta.env.DEV ? '/' : storefrontConfig().catalogBase
+export const routerBasename = import.meta.env.DEV ? '/' : storefrontConfig().routerBase

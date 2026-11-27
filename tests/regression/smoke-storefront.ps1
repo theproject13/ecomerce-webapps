@@ -21,11 +21,14 @@
 #>
 [CmdletBinding()]
 param(
-  [string]$StoreBase = 'http://localhost/osc414',
-  [string]$AdminBase = 'http://admin.localhost/osc414'
+  [string]$StoreBase = 'http://localhost/ecomerce-webapps',
+  [string]$AdminBase = 'http://admin.localhost/ecomerce-webapps'
 )
 
 $ErrorActionPreference = 'Stop'
+
+$InstallBase = ([uri]$StoreBase).AbsolutePath.TrimEnd('/')
+$InstallBaseJson = ($InstallBase -replace '/', '\/')
 
 $script:Failed = 0
 $script:Passed = 0
@@ -416,7 +419,7 @@ if ([string]::IsNullOrWhiteSpace($rendered)) {
 
   # Path yang boleh dipakai kartu produk. Path lain sepanjang /<slug>/ di luar
   # allowlist ReactShell akan dilayani PHP tema.
-  $allowed = 'product-detail|register|login|logoff|contact|shopping-cart|cart|checkout|furniture|watch|b2b-supermarket|printshop|react-assets|catalog|account|wishlist|orders|order-detail|addresses|search|index\.html'
+  $allowed = 'product-detail|register|login|logoff|contact|shopping-cart|cart|checkout|furniture|watch|b2b-supermarket|printshop|react-assets|catalog|account|wishlist|orders|order-detail|addresses|search|about|care|seller-center|index\.html'
   $seoLinks = [regex]::Matches($rendered, 'href="([^"]*/[a-z0-9][a-z0-9\-]{7,})"') |
     Where-Object { $_.Groups[1].Value -notmatch ('/(' + $allowed + ')([/?]|$)') }
 
@@ -462,9 +465,9 @@ Write-Host "`n== 10. Konfigurasi runtime diinjeksi PHP (A4) ==" -ForegroundColor
 # Kalau tag hilang, catalogBase jatuh ke default '/' dan semua URL absolut
 # ke halaman PHP kehilangan prefix install.
 foreach ($case in @(
-    @{ Path = '/'; Expected = '"catalogBase":"\/osc414"' },
-    @{ Path = '/product-detail?id=40'; Expected = '"catalogBase":"\/osc414"' },
-    @{ Path = '/register'; Expected = '"catalogBase":"\/osc414"' }
+    @{ Path = '/'; Expected = '"catalogBase":"' + $InstallBaseJson + '"' },
+    @{ Path = '/product-detail?id=40'; Expected = '"catalogBase":"' + $InstallBaseJson + '"' },
+    @{ Path = '/register'; Expected = '"catalogBase":"' + $InstallBaseJson + '"' }
   )) {
   $pageBody = (& curl.exe -sL "$StoreBase$($case.Path)") -join "`n"
   if ($pageBody -notmatch 'window\.__OSC_STOREFRONT__=(\{.*?\});') {
@@ -485,7 +488,7 @@ Write-Host "`n== 11. Kanal React: config dan render (A5) ==" -ForegroundColor Cy
 #     react-router tidak cocok dan halamannya layar putih.
 #  2. kartu produk di kanal menunjuk ke /furniture/product-detail?id=, tetap di
 #     bawah prefix kanal.
-$expectedChannelBase = '"catalogBase":"\/osc414\/furniture"'
+$expectedChannelBase = '"catalogBase":"' + (($InstallBase + '/furniture') -replace '/', '\/') + '"'
 
 foreach ($channel in $reactChannels) {
   $pageBody = (& curl.exe -sL "$StoreBase/$channel/") -join "`n"
@@ -630,7 +633,7 @@ foreach ($channel in @('', 'furniture')) {
       continue
     }
 
-    $target = if ($href -match '^https?://') { $href } else { "$StoreBase$($href -replace '^/osc414', '')" }
+    $target = if ($href -match '^https?://') { $href } else { "$StoreBase$($href -replace ('^' + [regex]::Escape($InstallBase)), '')" }
     $checked++
 
     # -L karena Apache masih 301 dari path tanpa trailing slash ke path dengan
@@ -730,23 +733,23 @@ if ([string]::IsNullOrWhiteSpace($catalogDom)) {
   # dan bukan path toko utama. Yang boleh keluar dari prefix kanal cuma asset
   # React dan satu link eksplisit ke katalog toko utama.
   $cardTargets = @(
-    [regex]::Matches($catalogDom, 'href="(/osc414/[^"]*product-detail\?id=\d+)"') |
+    [regex]::Matches($catalogDom, ('href="({0}/[^"]*product-detail\?id=\d+)"' -f $InstallBase)) |
       ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
   )
-  $badCards = @($cardTargets | Where-Object { $_ -notmatch '^/osc414/furniture/product-detail\?id=\d+$' })
+  $badCards = @($cardTargets | Where-Object { $_ -notmatch ('^{0}/furniture/product-detail\?id=\d+$' -f $InstallBase) })
 
   # URL SEO PHP (mis. /furniture/mattress) tidak boleh dipakai sebagai target
   # navigasi katalog. Link header ke shopping-cart tetap PHP dan itu benar,
   # jadi ikut dikecualikan baik dengan maupun tanpa garis miring akhir.
   $seoTargets = @(
-    [regex]::Matches($catalogDom, 'href="(/osc414/furniture/(?!product-detail|catalog/|account/|register|shopping-cart)[^"]+)"') |
+    [regex]::Matches($catalogDom, ('href="({0}/furniture/(?!product-detail|catalog/|account/|register|shopping-cart)[^"]+)"' -f $InstallBase)) |
       ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
   )
 
   $crossChannel = @(
-    [regex]::Matches($catalogDom, 'href="(/osc414/(?!furniture/)[^"]+)"') |
+    [regex]::Matches($catalogDom, ('href="({0}/(?!furniture/)[^"]+)"' -f $InstallBase)) |
       ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique |
-      Where-Object { $_ -notmatch '^/osc414/react-assets/' }
+      Where-Object { $_ -notmatch ('^{0}/react-assets/' -f $InstallBase) }
   )
 
   if ($badCards.Count -eq 0 -and $seoTargets.Count -eq 0 -and $crossChannel.Count -le 1) {
@@ -871,7 +874,7 @@ $addCount = [regex]::Match($addBody, '"count"\s*:\s*(\d+)').Groups[1].Value
 $addCartUrl = [regex]::Match($addBody, '"cart"\s*:\s*"([^"]+)"').Groups[1].Value
 $addCheckoutUrl = [regex]::Match($addBody, '"checkout"\s*:\s*"([^"]+)"').Groups[1].Value
 
-if ($addJson -and [int]$addCount -ge 1 -and $addCartUrl -eq '/osc414/furniture/shopping-cart' -and $addCheckoutUrl -eq '/osc414/furniture/checkout') {
+if ($addJson -and [int]$addCount -ge 1 -and $addCartUrl -eq "$InstallBase/furniture/shopping-cart" -and $addCheckoutUrl -eq "$InstallBase/furniture/checkout") {
   Write-Host ("  PASS  {0,-52} {1}" -f 'POST /api/cart/add menulis ke cart PHP', "count=$addCount, redirect cart+checkout") -ForegroundColor Green
   $script:Passed++
 } else {

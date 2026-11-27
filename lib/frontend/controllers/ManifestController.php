@@ -19,13 +19,18 @@ class ManifestController extends Sceleton {
 
     public function actionIndex() { 
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        
+
+        $themeColor = trim((string)Info::themeSetting('theme_color'));
+        if (!preg_match('/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i', $themeColor)) {
+            $themeColor = '#ffffff';
+        }
+
         $response_array = array(
             "name" => \common\classes\platform::name(PLATFORM_ID),
             "short_name" => \common\classes\platform::name(PLATFORM_ID),
             "start_url" => "/",
-            "background_color" => Info::themeSetting('theme_color'),
-            "theme_color" => Info::themeSetting('theme_color'),
+            "background_color" => $themeColor,
+            "theme_color" => $themeColor,
             "orientation" => "any",
             "display" => "standalone",
             "icons" => array(

@@ -20,12 +20,18 @@ use Yii;
  * Cakupan sengaja dibatasi:
  * - Hanya pelanggan yang login dan memilih alamat dari address book. Membuat
  *   alamat baru masih lewat halaman akun PHP.
- * - Penempatan pesanan hanya untuk modul pembayaran offline (isOnline() ===
- *   false, mis. cod/offline). Modul online diarahkan kembali ke checkout PHP,
- *   karena gateway butuh redirect/redirect-balik ke dirinya sendiri.
+ * - Modul offline (isOnline() === false) diproses penuh lewat actionPlace.
+ * - Modul online tanpa popUpMode()/directPayment() diproses React sampai
+ *   konfirmasi, lalu dilanjutkan lewat form POST same-origin ke
+ *   checkout/process milik tema PHP. Endpoint itu adalah jembatan gateway:
+ *   ia menjalankan before_process/after_process modul dan melakukan redirect
+ *   ke provider. Halaman checkout PHP tidak dirender lagi.
+ * - Modul popUpMode()/directPayment() masih memakai halaman checkout PHP
+ *   karena butuh JS/form khusus dari modul (mis. stripe_checkout).
  *
- * Yang tetap milik PHP: session, cartID, perhitungan total, validasi stok, dan
- * penyimpanan order (save_order/save_details/save_products).
+ * Yang tetap milik PHP: session, cartID, perhitungan total, validasi stok,
+ * penyimpanan order (save_order/save_details/save_products), dan callback
+ * pembayaran server-to-server.
  */
 class CheckoutController extends BaseApiController
 {
@@ -74,6 +80,7 @@ class CheckoutController extends BaseApiController
 
         $manager = $this->manager();
         $this->applySelections($manager, Yii::$app->request->post());
+        $manager->set('cartID', $GLOBALS['cart']->cartID);
 
         return $this->payload([
             'state' => $this->state($manager),
@@ -303,11 +310,15 @@ class CheckoutController extends BaseApiController
                 $module = $collection->get((string)$selection['module']);
             }
             $online = is_object($module) && $module->isOnline();
+            $popup = is_object($module) && method_exists($module, 'popUpMode') && $module->popUpMode();
+            $direct = is_object($module) && method_exists($module, 'directPayment') && $module->directPayment();
 
             $paymentMethods[] = [
                 'code' => $code,
                 'title' => (string)($selection['title'] ?? $code),
                 'online' => (bool)$online,
+                'popup' => (bool)$popup,
+                'direct' => (bool)$direct,
                 'checked' => (bool)($selection['checked'] ?? false),
             ];
         }
@@ -395,6 +406,7 @@ class CheckoutController extends BaseApiController
             'redirect' => array_merge([
                 'cart' => rtrim((string)Yii::$app->urlManager->createUrl(['shopping-cart']), '/'),
                 'php_checkout' => rtrim((string)Yii::$app->urlManager->createUrl(['checkout/index']), '/'),
+                'gateway_process' => rtrim((string)Yii::$app->urlManager->createUrl(['checkout/process']), '/'),
                 'login' => rtrim((string)Yii::$app->urlManager->createUrl(['account/login']), '/'),
             ], $data['redirect'] ?? []),
             'meta' => [

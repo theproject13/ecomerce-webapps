@@ -125,3 +125,10 @@ Jika salah satu gagal, lihat [docs/troubleshooting.md](docs/troubleshooting.md).
 | `npm` diblokir PowerShell | Pakai `npm.cmd`. |
 
 Daftar lengkap: [docs/troubleshooting.md](docs/troubleshooting.md).
+
+## Catatan Git & Keamanan
+
+- **Jangan push kredensial sensitif**: password DB produksi/real, API key, SMTP/token payment/OAuth/private key, kredensial admin nyata. File `includes/local/configure.php`, `admin/includes/local/configure.php`, dan `lib/frontend/web/react/.env` saat ini tracked; pertahankan nilai non-sensitif/lokal, jangan isi secret produksi.
+- **Yang sengaja di-ignore**: `node_modules/`, `lib/frontend/web/react/public/`, `.vite/`, runtime/cache (`assets/*`, `lib/*/runtime/*`, `themes/*/cache/*`), duplikat store `/watch/ /furniture/ /printshop/ /b2b-supermarket/`, asset publish Yii `admin/assets/*`, file OS/temp (`Thumbs.db`, `.DS_Store`, `~$*`), dan file agent lokal.
+- **Aman untuk dipush**: kode sumber, SQL/dokumen proyek yang diperlukan, config sample/template, perubahan `.gitignore`/README. `lib/frontend/web/react/public/` harus dibuild ulang di device tujuan (`npm.cmd install && npm.cmd run build`).
+- **Pindah device aman**: gunakan sample/placeholder untuk config, simpan secret nyata di luar Git, dan rotasi secret jika pernah terlanjur terpush (hapus file di commit baru tidak menghapus riwayat Git).
